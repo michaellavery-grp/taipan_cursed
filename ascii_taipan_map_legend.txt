@@ -1,7 +1,8 @@
-┌────────────┐
-│Legend      │
-│○ Empty Port│
-│● Full Port │
-│◎ Home Port │
-│◉ In Home   │
-└────────────┘
+ +-------------+
+ |   Legend    |
+ |=============|
+ |o Empty Port |
+ |* Full Port  |
+ |Q Home Port  |
+ |@ At Home    |
+ +-------------+
