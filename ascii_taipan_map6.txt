@@ -1,4 +1,4 @@
-﻿Ba - Batavia              \          / _/
+ Ba - Batavia              \          / _/
  Sa - Saigon                |        / /
  Si - Singapore              \     o Nagasaki    
                     Shanghai o
@@ -7,20 +7,20 @@
                           |
                          /
                        _/
-/\                    o Hong Kong               
+/\                    Q Hong Kong               
   |                _ /       __
   / /|            / U       |  \
   -- |            |          o Manila
  x    | /|         |        \  \
      | / '--, Sa o/          ---
     /  \     \ /--'       /              ^
-    \   `--]  Y          /              \N/
-     \     \                          <--+-->
-      \     \                           /|\
-       |     |                           V
-        \__Si\
-           \o|
-            v
-               x       __
-                <*Ba\_/  =\
+    \   `--]  Y          /              \N/               +-------------+
+     \     \                          <--+-->             |   Legend    |   
+      \     \                           /|\               |=============| 
+       |     |                           V                |o Empty Port |
+        \__Si\                                            |* Full Port  |
+           \o|                                            |Q Home Port  |
+            v                                             |@ At Home    |
+               x       __                                 +-------------+ 
+                <*Ba\_/  =\                 
 
