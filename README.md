@@ -9,7 +9,7 @@
 # 🚢 Taipan Cursed ⚓
 ### *Sailing the South China Seas with the Dutch East India Company*
 
-![Splash-Screen]Screenshot 2025-11-12 at 8.44.37 PM.png
+![Screenshot 2025-11-12 at 8.44.37 PM.png](https://github.com/michaellavery-grp/taipan_cursed/blob/4a9fcebfdf9cb1226244b7dc4e67de46d555853b/screenie.png)
 
 > *"Taipan Cursed, sailing as the Dutch East India Company, preserves its legacy with JSON ledgers and zen koans, crafted with Grok's celestial guidance from xAI."*
 
