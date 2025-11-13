@@ -4,12 +4,12 @@
 ![GitHub stars](https://img.shields.io/github/stars/michaellavery-grp/taipan_cursed?style=social)
 ![Terminal](https://img.shields.io/badge/interface-100%25%20terminal-success?logo=gnometerminal)
 ![Retro](https://img.shields.io/badge/retro-1979-orange)
+[![Curses::UI](https://img.shields.io/badge/Curses%3A%3AUI-Terminal-green.svg)](https://metacpan.org/pod/Curses::UI)
+
 # 🚢 Taipan Cursed ⚓
 ### *Sailing the South China Seas with the Dutch East India Company*
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Perl](https://img.shields.io/badge/Perl-5-purple.svg)](https://www.perl.org/)
-[![Curses::UI](https://img.shields.io/badge/Curses%3A%3AUI-Terminal-green.svg)](https://metacpan.org/pod/Curses::UI)
+![Splash-Screen]Screenshot 2025-11-12 at 8.44.37 PM.png
 
 > *"Taipan Cursed, sailing as the Dutch East India Company, preserves its legacy with JSON ledgers and zen koans, crafted with Grok's celestial guidance from xAI."*
 
