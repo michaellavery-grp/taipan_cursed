@@ -16,7 +16,7 @@ use POSIX qw(strftime);
 use File::Spec;
 
 # Debug logging to file
-our $DEBUG_LOG = '/Users/michaellavery/github/taipan_debug.log';
+our $DEBUG_LOG = './taipan_debug.log';
 open(my $debug_fh, '>', $DEBUG_LOG) or die "Cannot open debug log: $!";
 sub debug_log {
     my $msg = shift;
