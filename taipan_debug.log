@@ -1,0 +1,12 @@
+Sat Nov 15 04:26:51 2025: === TAIPAN STARTED ===
+Sat Nov 15 04:26:51 2025: Splash screen focused
+Sat Nov 15 04:26:51 2025: Splash binding set, starting mainloop
+Sat Nov 15 04:26:52 2025: Splash key pressed - calling clear_splash_screen
+Sat Nov 15 04:26:52 2025: clear_splash_screen called
+Sat Nov 15 04:26:52 2025: About to delete splash label
+Sat Nov 15 04:26:52 2025: Splash label deleted
+Sat Nov 15 04:26:52 2025: Instructions displayed
+Sat Nov 15 04:26:52 2025: Waiting for game choice (N or L)
+Sat Nov 15 04:26:55 2025: User entered game choice: L
+Sat Nov 15 04:26:55 2025: User chose LOAD GAME
+Sat Nov 15 04:26:58 2025: Returned from load_game, starting main_loop

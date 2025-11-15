@@ -1156,7 +1156,7 @@ sub input_prompt {
         -y => 0,
         -x => 0,
         -width => 79,
-        -text => 'Taipan, What will you name your Firm? > ',
+        -text => '',  # Start blank - will be set after splash screen choice
         -fg => 'white',
         -bg => 'black',
     );
@@ -1568,33 +1568,40 @@ sub clear_splash_screen {
     debug_log("clear_splash_screen called");
 
     eval {
+        debug_log("About to delete splash label");
         $top_left->delete('mysplashlabel');
+        debug_log("Splash label deleted");
+
+        # Clear the bottom prompt area
+        $prompt_label->text('');
+        $text_entry->text('');
+        $current_action = '';
 
         # Show instructions in the Known World window
         my $instructions = <<'END_INSTRUCTIONS';
 
-    ╔══════════════════════════════════════════════════════════════════════╗
-    ║                        TAIPAN - HOW TO PLAY                          ║
-    ╚══════════════════════════════════════════════════════════════════════╝
+    ========================================================================
+                            TAIPAN - HOW TO PLAY
+    ========================================================================
 
     NAVIGATION:
-      • Use TAB or arrow keys to move between menus
-      • Press ENTER to confirm selections
-      • Type numbers/text in the input field at bottom
+      - Use TAB or arrow keys to move between menus
+      - Press ENTER to confirm selections
+      - Type numbers/text in the input field at bottom
 
     TRADING:
-      • Enter amounts to buy/sell goods
-      • Enter exact PORT NAME to sail (e.g., "Shanghai")
+      - Enter amounts to buy/sell goods
+      - Enter exact PORT NAME to sail (e.g., "Shanghai")
 
     SHIP MANAGEMENT:
-      • Buy ships to increase cargo capacity (60 units each)
-      • Buy guns for protection (¥500 per gun × all ships)
-      • More guns (>20) increase ship purchase costs
-      • Repair damage after battles
+      - Buy ships to increase cargo capacity (60 units each)
+      - Buy guns for protection (500 yen per gun x all ships)
+      - More guns (>20) increase ship purchase costs
+      - Repair damage after battles
 
     GOAL:
-      • Build your trading empire across 7 Asian ports
-      • Achieve net worth of ¥1,000,000 to become a FÙHÁO!
+      - Build your trading empire across 7 Asian ports
+      - Achieve net worth of 1,000,000 yen to become a FUHÁO!
 
 END_INSTRUCTIONS
 
@@ -1608,36 +1615,62 @@ END_INSTRUCTIONS
         $cui->draw(1);  # Force UI refresh
         debug_log("Instructions displayed");
 
-        # Ask if player wants new game or load game
-        my $choice_dialog = $cui->add(
-            'game_choice_dialog', 'Dialog::Basic',
-            -title => 'Welcome, Taipan!',
-            -message => "Start a new game?\n\n(Select 'yes' for New Game, 'no' to Load Game)",
-            -buttons => ['yes', 'no'],
+        # Show prompt to user
+        $prompt_label->text('Use ARROW KEYS to select, press ENTER to confirm:');
+
+        # Ask if player wants new game or load game using a visible Listbox
+        my $choice_menu = $bottom_top_left->add(
+            'game_choice_menu', 'Listbox',
+            -y => 1,
+            -x => 2,
+            -width => 30,
+            -height => 3,
+            -values => ['New Game', 'Load Game'],
+            -border => 1,
+            -title => 'Choose Option',
+            -fg => 'white',
+            -bg => 'black',
         );
-        debug_log("Dialog created");
 
-        my $response = $choice_dialog->get();
-        debug_log("User selected: $response");
+        $choice_menu->focus();
+        $cui->draw(1);
+        debug_log("Choice menu displayed");
 
-        $cui->delete('game_choice_dialog');
+        # Set up binding to capture selection
+        my $user_choice = '';
+        $choice_menu->set_binding(sub {
+            my $this = shift;
+            $user_choice = $this->get();
+            debug_log("User selected from menu: $user_choice");
+            $this->loose_focus();
+        }, KEY_ENTER);
+
+        # Wait for user to make selection
+        $cui->do_one_event($choice_menu);
+
+        # Clean up the menu
+        $bottom_top_left->delete('game_choice_menu');
+        $prompt_label->text('');
 
         # Clear instructions and show map
         $top_left->delete('instructions_label');
         draw_map();
         $cui->draw(1);
 
-        if ($response eq 'no') {
-            debug_log("Loading game");
-            # User said no to new game, so load game
+        debug_log("User final choice: $user_choice");
+
+        if ($user_choice eq 'Load Game') {
+            debug_log("User chose LOAD GAME");
+            # Load game
             load_game();
+            debug_log("Returned from load_game");
             # After loading, set up for normal gameplay
             $prompt_label->text('');
             $text_entry->text('');
             $current_action = '';
             $text_entry->focus();
         } else {
-            debug_log("Starting new game");
+            debug_log("User chose NEW GAME");
             # New game - ask for firm name
             $prompt_label->text("Taipan, What will you name your Firm? > ");
             $text_entry->text('');

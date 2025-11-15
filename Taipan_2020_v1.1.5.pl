@@ -1156,7 +1156,7 @@ sub input_prompt {
         -y => 0,
         -x => 0,
         -width => 79,
-        -text => 'Taipan, What will you name your Firm? > ',
+        -text => '',  # Start blank - will be set after splash screen choice
         -fg => 'white',
         -bg => 'black',
     );
@@ -1176,7 +1176,32 @@ sub input_prompt {
         my $value = $text_entry->get();
         # Trim leading/trailing whitespace
         $value =~ s/^\s+|\s+$//g if defined $value;
-        if ($current_action eq 'name_firm') {
+        if ($current_action eq 'game_choice') {
+            my $choice = uc(substr($value, 0, 1));  # Get first letter, uppercase
+            debug_log("User entered game choice: $choice");
+
+            # Clear instructions and show map
+            $top_left->delete('instructions_label') if $top_left->getobj('instructions_label');
+            draw_map();
+            $cui->draw(1);
+
+            if ($choice eq 'L') {
+                debug_log("User chose LOAD GAME");
+                load_game();
+                # After loading, set up for normal gameplay
+                $prompt_label->text('');
+                $text_entry->text('');
+                $current_action = '';
+                $text_entry->focus();
+            } else {
+                debug_log("User chose NEW GAME (choice=$choice)");
+                # New game - ask for firm name
+                $prompt_label->text("Taipan, What will you name your Firm? > ");
+                $text_entry->text('');
+                $current_action = 'name_firm';
+                $text_entry->focus();
+            }
+        } elsif ($current_action eq 'name_firm') {
             $player{firm_name} = $value;
             update_status();
             main_loop();  # Proceed to main game loop after naming firm
@@ -1568,33 +1593,40 @@ sub clear_splash_screen {
     debug_log("clear_splash_screen called");
 
     eval {
+        debug_log("About to delete splash label");
         $top_left->delete('mysplashlabel');
+        debug_log("Splash label deleted");
+
+        # Clear the bottom prompt area
+        $prompt_label->text('');
+        $text_entry->text('');
+        $current_action = '';
 
         # Show instructions in the Known World window
         my $instructions = <<'END_INSTRUCTIONS';
 
-    ╔══════════════════════════════════════════════════════════════════════╗
-    ║                        TAIPAN - HOW TO PLAY                          ║
-    ╚══════════════════════════════════════════════════════════════════════╝
+    ========================================================================
+                            TAIPAN - HOW TO PLAY
+    ========================================================================
 
     NAVIGATION:
-      • Use TAB or arrow keys to move between menus
-      • Press ENTER to confirm selections
-      • Type numbers/text in the input field at bottom
+      - Use TAB or arrow keys to move between menus
+      - Press ENTER to confirm selections
+      - Type numbers/text in the input field at bottom
 
     TRADING:
-      • Enter amounts to buy/sell goods
-      • Enter exact PORT NAME to sail (e.g., "Shanghai")
+      - Enter amounts to buy/sell goods
+      - Enter exact PORT NAME to sail (e.g., "Shanghai")
 
     SHIP MANAGEMENT:
-      • Buy ships to increase cargo capacity (60 units each)
-      • Buy guns for protection (¥500 per gun × all ships)
-      • More guns (>20) increase ship purchase costs
-      • Repair damage after battles
+      - Buy ships to increase cargo capacity (60 units each)
+      - Buy guns for protection (500 yen per gun x all ships)
+      - More guns (>20) increase ship purchase costs
+      - Repair damage after battles
 
     GOAL:
-      • Build your trading empire across 7 Asian ports
-      • Achieve net worth of ¥1,000,000 to become a FÙHÁO!
+      - Build your trading empire across 7 Asian ports
+      - Achieve net worth of 1,000,000 yen to become a FUHÁO!
 
 END_INSTRUCTIONS
 
@@ -1608,42 +1640,16 @@ END_INSTRUCTIONS
         $cui->draw(1);  # Force UI refresh
         debug_log("Instructions displayed");
 
-        # Ask if player wants new game or load game
-        my $choice_dialog = $cui->add(
-            'game_choice_dialog', 'Dialog::Basic',
-            -title => 'Welcome, Taipan!',
-            -message => "Start a new game?\n\n(Select 'yes' for New Game, 'no' to Load Game)",
-            -buttons => ['yes', 'no'],
-        );
-        debug_log("Dialog created");
+        # Ask if player wants new game or load game via text input
+        $prompt_label->text('(N)ew Game or (L)oad Game? > ');
+        $text_entry->text('');
+        $text_entry->focus();
+        $current_action = 'game_choice';
+        debug_log("Waiting for game choice (N or L)");
 
-        my $response = $choice_dialog->get();
-        debug_log("User selected: $response");
-
-        $cui->delete('game_choice_dialog');
-
-        # Clear instructions and show map
-        $top_left->delete('instructions_label');
-        draw_map();
-        $cui->draw(1);
-
-        if ($response eq 'no') {
-            debug_log("Loading game");
-            # User said no to new game, so load game
-            load_game();
-            # After loading, set up for normal gameplay
-            $prompt_label->text('');
-            $text_entry->text('');
-            $current_action = '';
-            $text_entry->focus();
-        } else {
-            debug_log("Starting new game");
-            # New game - ask for firm name
-            $prompt_label->text("Taipan, What will you name your Firm? > ");
-            $text_entry->text('');
-            $current_action = 'name_firm';
-            $text_entry->focus();
-        }
+        # This returns control to main_loop which will handle the 'game_choice' action
+        # We need to set a flag so main_loop knows to come back here
+        $player{choosing_game_mode} = 1;
     };
 
     if ($@) {

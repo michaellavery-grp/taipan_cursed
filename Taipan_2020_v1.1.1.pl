@@ -1627,7 +1627,9 @@ END_INSTRUCTIONS
         draw_map();
         $cui->draw(1);
 
-        if ($response eq 'no') {
+        # Dialog returns button index (0 for 'yes', 1 for 'no') or the button text
+        # Check for both index and text to be safe
+        if ($response eq 'no' || $response eq '1' || (defined $response && $response == 1)) {
             debug_log("Loading game");
             # User said no to new game, so load game
             load_game();

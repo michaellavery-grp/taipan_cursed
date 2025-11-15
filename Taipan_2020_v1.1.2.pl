@@ -1156,7 +1156,7 @@ sub input_prompt {
         -y => 0,
         -x => 0,
         -width => 79,
-        -text => 'Taipan, What will you name your Firm? > ',
+        -text => '',  # Start blank - will be set after splash screen choice
         -fg => 'white',
         -bg => 'black',
     );
@@ -1568,7 +1568,14 @@ sub clear_splash_screen {
     debug_log("clear_splash_screen called");
 
     eval {
+        debug_log("About to delete splash label");
         $top_left->delete('mysplashlabel');
+        debug_log("Splash label deleted");
+
+        # Clear the bottom prompt area
+        $prompt_label->text('');
+        $text_entry->text('');
+        $current_action = '';
 
         # Show instructions in the Known World window
         my $instructions = <<'END_INSTRUCTIONS';
@@ -1627,17 +1634,20 @@ END_INSTRUCTIONS
         draw_map();
         $cui->draw(1);
 
-        if ($response eq 'no') {
-            debug_log("Loading game");
+        # Dialog returns button index (0 for 'yes', 1 for 'no') or the button text
+        # Check for both index and text to be safe
+        if ($response eq 'no' || $response eq '1' || (defined $response && $response == 1)) {
+            debug_log("User chose LOAD GAME (response=$response)");
             # User said no to new game, so load game
             load_game();
+            debug_log("Returned from load_game");
             # After loading, set up for normal gameplay
             $prompt_label->text('');
             $text_entry->text('');
             $current_action = '';
             $text_entry->focus();
         } else {
-            debug_log("Starting new game");
+            debug_log("User chose NEW GAME (response=$response)");
             # New game - ask for firm name
             $prompt_label->text("Taipan, What will you name your Firm? > ");
             $text_entry->text('');
