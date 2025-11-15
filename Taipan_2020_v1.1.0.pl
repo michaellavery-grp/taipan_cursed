@@ -15,8 +15,13 @@ use JSON;
 use POSIX qw(strftime);
 use File::Spec;
 
+<<<<<<< HEAD
 # Debug logging to file - relative path for portability
 our $DEBUG_LOG = 'taipan_debug.log';
+=======
+# Debug logging to file
+our $DEBUG_LOG = './taipan_debug.log';
+>>>>>>> 58fccb24853647c4d0858f8753d6e8cccf7aa662
 open(my $debug_fh, '>', $DEBUG_LOG) or die "Cannot open debug log: $!";
 sub debug_log {
     my $msg = shift;
