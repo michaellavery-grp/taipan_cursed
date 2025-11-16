@@ -1200,6 +1200,7 @@ sub input_prompt {
                 $prompt_label->text("Taipan, What will you name your Firm? > ");
                 $text_entry->text('');
                 $current_action = 'name_firm';
+                $cui->draw(1);  # Draw the prompt to screen!
                 $text_entry->focus();
             }
         } elsif ($current_action eq 'name_firm') {

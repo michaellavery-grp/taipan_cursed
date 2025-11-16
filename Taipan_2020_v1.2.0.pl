@@ -1196,11 +1196,22 @@ sub input_prompt {
                 main_loop();  # Start playing the loaded game!
             } else {
                 debug_log("User chose NEW GAME (choice=$choice)");
-                # New game - ask for firm name
-                $prompt_label->text("Taipan, What will you name your Firm? > ");
-                $text_entry->text('');
-                $current_action = 'name_firm';
-                $text_entry->focus();
+                # New game - ask for firm name using a question dialog
+                debug_log("NEW GAME: Showing firm name dialog");
+                my $firm_name = $cui->question("Taipan, What will you name your Firm?");
+                debug_log("NEW GAME: User entered firm name: $firm_name");
+
+                if (defined $firm_name && $firm_name ne '') {
+                    $player{firm_name} = $firm_name;
+                    debug_log("NEW GAME: Calling update_status");
+                    update_status();
+                    debug_log("NEW GAME: Calling main_loop");
+                    main_loop();  # Start the game!
+                    debug_log("NEW GAME: Returned from main_loop");
+                } else {
+                    debug_log("NEW GAME: No firm name entered, exiting");
+                    $cui->error("No firm name entered. Exiting.");
+                }
             }
         } elsif ($current_action eq 'name_firm') {
             debug_log("name_firm: User entered firm name: $value");

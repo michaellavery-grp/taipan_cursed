@@ -93,6 +93,19 @@ our %port_risk = (
     'Singapore'  => 0.06,  # British, well organized
 );
 
+# Per-port debt tracking - Elder Brother Wu's agents in each port
+# Communications between ports are slow, so player can borrow from each port independently
+# Each port has a 50,000 yen lending limit
+our %port_debt = (
+    'Hong Kong'  => 0,
+    'Shanghai'   => 0,
+    'Nagasaki'   => 0,
+    'Saigon'     => 0,
+    'Manila'     => 0,
+    'Batavia'    => 0,
+    'Singapore'  => 0,
+);
+
 # Define the ascii map text
 our @filenames = ('ascii_taipan_map1.txt', 'ascii_taipan_map2.txt', 'ascii_taipan_map3.txt', 'ascii_taipan_map4.txt', 'ascii_taipan_map5.txt', 'ascii_taipan_map6.txt', 'ascii_taipan_map7.txt');
 # create blank array to hold map text string values
@@ -381,10 +394,15 @@ sub save_game {
         return if $response eq 'no';
     }
 
-    # Save game data
+    # Save game data (player, warehouses, and port debts)
     eval {
+        my $save_data = {
+            player => \%player,
+            warehouses => \%warehouses,
+            port_debt => \%port_debt,
+        };
         open my $fh, '>', $filename or die "Cannot open $filename: $!";
-        print $fh encode_json(\%player);
+        print $fh encode_json($save_data);
         close $fh;
         $cui->dialog("VOC ledger saved as $filename!");
     };
@@ -418,7 +436,20 @@ sub load_game {
         }
 
         my $loaded_data = decode_json($json);
-        %player = %$loaded_data;
+
+        # Check if this is old format (just player hash) or new format (player + warehouses + port_debt)
+        if (exists $loaded_data->{player}) {
+            # New format: restore all game state
+            %player = %{$loaded_data->{player}};
+            %warehouses = %{$loaded_data->{warehouses}} if exists $loaded_data->{warehouses};
+            %port_debt = %{$loaded_data->{port_debt}} if exists $loaded_data->{port_debt};
+            debug_log("Loaded new format save: player, warehouses, port_debt restored");
+        } else {
+            # Old format: just player data (backward compatibility)
+            %player = %$loaded_data;
+            debug_log("Loaded old format save: only player data restored");
+            # warehouses and port_debt will keep their default values
+        }
 
         # Regenerate prices after loading (prices are not saved, only player data)
         initialize_trends();
@@ -445,11 +476,21 @@ sub advance_date {
 
         # Apply monthly debt interest (Original Taipan: 10% per month!)
         # Line 1010 of original BASIC: DW = INT(DW + DW * .1)
+        # USURY PENALTY: 20% if debt > 10x bank balance (Elder Brother Wu gets mean!)
         if ($player{debt} > 0) {
             my $old_debt = $player{debt};
-            $player{debt} = int($player{debt} + $player{debt} * 0.1);
+            my $interest_rate = 0.10;  # Normal rate: 10% per month
+
+            # Check if player is in deep trouble (debt > 10x bank balance)
+            if ($player{debt} > ($player{bank_balance} * 10)) {
+                $interest_rate = 0.20;  # USURY! 20% per month
+                debug_log("USURY RATES APPLIED: debt=$player{debt} > 10x bank_balance=" . ($player{bank_balance} * 10));
+            }
+
+            $player{debt} = int($player{debt} + $player{debt} * $interest_rate);
             my $interest = $player{debt} - $old_debt;
-            debug_log("Monthly debt interest: debt increased from $old_debt to $player{debt} (+$interest)");
+            my $rate_percent = int($interest_rate * 100);
+            debug_log("Monthly debt interest ($rate_percent%): debt increased from $old_debt to $player{debt} (+$interest)");
         }
 
         if ($player{date}{month} > 12) {
@@ -1196,11 +1237,22 @@ sub input_prompt {
                 main_loop();  # Start playing the loaded game!
             } else {
                 debug_log("User chose NEW GAME (choice=$choice)");
-                # New game - ask for firm name
-                $prompt_label->text("Taipan, What will you name your Firm? > ");
-                $text_entry->text('');
-                $current_action = 'name_firm';
-                $text_entry->focus();
+                # New game - ask for firm name using a question dialog
+                debug_log("NEW GAME: Showing firm name dialog");
+                my $firm_name = $cui->question("Taipan, What will you name your Firm?");
+                debug_log("NEW GAME: User entered firm name: $firm_name");
+
+                if (defined $firm_name && $firm_name ne '') {
+                    $player{firm_name} = $firm_name;
+                    debug_log("NEW GAME: Calling update_status");
+                    update_status();
+                    debug_log("NEW GAME: Calling main_loop");
+                    main_loop();  # Start the game!
+                    debug_log("NEW GAME: Returned from main_loop");
+                } else {
+                    debug_log("NEW GAME: No firm name entered, exiting");
+                    $cui->error("No firm name entered. Exiting.");
+                }
             }
         } elsif ($current_action eq 'name_firm') {
             debug_log("name_firm: User entered firm name: $value");
@@ -1546,6 +1598,24 @@ sub combat_loop {
 # Modified random_event subroutine
 sub random_event {
     #warn "Entering random_event\n";
+
+    # ENFORCER ATTACK: If debt > 10x bank balance, Elder Brother Wu sends Vinnie & Mario!
+    # These goons ALWAYS attack (no random chance) and are tougher than regular pirates
+    if ($player{debt} > 0 && $player{debt} > ($player{bank_balance} * 10)) {
+        # Calculate enforcer strength: more debt = more enforcers
+        my $debt_ratio = int($player{debt} / ($player{bank_balance} + 1));  # +1 to avoid division by zero
+        my $enforcers = int($debt_ratio / 2) + 3;  # Minimum 3 enforcers, scales with debt
+        if ($enforcers > 20) { $enforcers = 20; }  # Cap at 20
+
+        $num_ships = $enforcers;
+        debug_log("ENFORCER ATTACK! Debt=$player{debt}, Bank=$player{bank_balance}, Enforcers=$enforcers");
+        $cui->dialog("Elder Brother Wu's enforcers attack!\n\n'Vinnie and Mario are here to collect, Taipan!\nYou owe ¥$player{debt}!\nTime to pay up... in blood if necessary!'\n\n$enforcers armed junks surround your fleet!");
+        init_combat();
+        combat_loop();
+        return;  # Enforcer attack handled, skip normal pirate logic
+    }
+
+    # NORMAL PIRATE ENCOUNTER (1 in 9 chance)
     my $pirates = int(rand(($player{hold_capacity} / 10) + $player{guns}) + 1);
     if ($pirates > 9999) {
         $pirates = 9999; # Cap at 9999 for display purposes
@@ -2263,18 +2333,22 @@ sub do_repair {
 sub check_port_events {
     my $port = shift;
 
-    # 0. DEBT WARNING (Brother Wu's concern)
+    # 0. DEBT WARNING (Elder Brother Wu's concern)
     # Warn when debt is high relative to net worth
     if ($player{debt} > 0) {
         my $net_worth = $player{cash} + $player{bank_balance} - $player{debt};
 
+        # USURY RATES: Debt > 10x bank balance (20% monthly interest!)
+        if ($player{debt} > ($player{bank_balance} * 10)) {
+            $cui->dialog("Elder Brother Wu sends his enforcers:\n\n'Taipan! Your debt of ¥$player{debt} is TEN TIMES your bank balance!\n\nUSURY RATES now apply: 20% monthly interest!\n\nVinnie and Mario will be watching you closely...'");
+        }
         # Critical: Debt exceeds total assets
-        if ($player{debt} > ($player{cash} + $player{bank_balance})) {
-            $cui->dialog("Brother Wu sends word:\n\n'Taipan, your debt of ¥$player{debt} exceeds your assets!\nThe 10% monthly interest compounds relentlessly.\nPay down your debt before it consumes you!'");
+        elsif ($player{debt} > ($player{cash} + $player{bank_balance})) {
+            $cui->dialog("Elder Brother Wu sends word:\n\n'Taipan, your debt of ¥$player{debt} exceeds your assets!\nThe 10% monthly interest compounds relentlessly.\nPay down your debt before it consumes you!'");
         }
         # Warning: Debt is more than 50% of net worth
         elsif ($player{debt} > $net_worth * 0.5) {
-            $cui->dialog("Brother Wu sends word:\n\n'Taipan, your debt grows at 10% per month.\nCurrent debt: ¥$player{debt}\nConsider paying it down soon.'");
+            $cui->dialog("Elder Brother Wu sends word:\n\n'Taipan, your debt grows at 10% per month.\nCurrent debt: ¥$player{debt}\nConsider paying it down soon.'");
         }
     }
 
@@ -2572,6 +2646,27 @@ sub sail_to {
         $cui->dialog("Arrived in $new_port after $days days.");
         #warn "sail_to: Dialog displayed\n";
 
+        # Elder Brother Wu's Zen wisdom upon arriving in Hong Kong
+        if ($new_port eq 'Hong Kong' && $player{debt} > 0) {
+            my @messages = (
+                # Zen koans
+                "Elder Brother Wu greets you at the dock:\n\n'Taipan, the river knows all tributaries,\nthough each flows from a different mountain.\nYour debts: ¥$player{debt}.'\n\nHe smiles knowingly.",
+                "Elder Brother Wu emerges from the shadows:\n\n'The spider knows each thread in her web,\nthough she sits at the center in stillness.\nI know your debts, Taipan: ¥$player{debt}.'\n\nHe bows slightly.",
+                "Elder Brother Wu sips tea on the pier:\n\n'A wise man once said: he who borrows from seven ports\nowes seven times, but the moon sees all.\nYour total burden: ¥$player{debt}, Taipan.'\n\nHe offers you tea.",
+                "Elder Brother Wu counts on an abacus:\n\n'The mathematician needs no telegraph to sum numbers.\nMy brothers in distant ports write slowly,\nbut I have already added your debts: ¥$player{debt}.'\n\nClick. Click. Click.",
+                "Elder Brother Wu stands at the dock:\n\n'They say my agents cannot communicate fast enough.\nTrue! But debt, like smoke, rises to heaven\nwhere all accounts are balanced.\nI see ¥$player{debt}, Taipan.'\n\nHe lights incense.",
+                # Godfather-style messages
+                "Elder Brother Wu waits at the dock with two large men:\n\n'Taipan, my dear friend... Vinnie and Mario here,\nthey help me remember things.\nRight now they remind me you owe ¥$player{debt}.\nDon't make them remind you personally.'\n\nVinnie cracks his knuckles.",
+                "Elder Brother Wu leans against a crate:\n\n'You know, Taipan, I'm a reasonable man.\nI lend money to my friends in seven ports.\nAnd my friends, they always pay me back.\n¥$player{debt}, Taipan. In case you forgot.'\n\nHe lights a cigar.",
+                "Two men in dark suits approach your ship.\nOne speaks:\n\n'Elder Brother Wu sends his regards, Taipan.\nHe wanted us to mention - very friendly-like -\nthat you borrowed ¥$player{debt} from the family.\nThe Don, he appreciates prompt payment.'\n\nThey smile coldly.",
+                "Elder Brother Wu greets you warmly:\n\n'Taipan! Come, sit! You're family to me.\nThat's why I'm going to be straight with you:\n¥$player{debt}. That's what you owe.\nNow, we're going to settle this, yes?\nOne way... or another.'\n\nHe pours you wine."
+            );
+
+            # Choose a random message
+            my $message = $messages[int(rand(scalar @messages))];
+            $cui->dialog($message);
+        }
+
         # Check for random events at port
         check_port_events($new_port);
 
@@ -2595,24 +2690,92 @@ sub sail_to {
 
 sub borrow {
     my $amount = shift;
+
+    # Validate input
+    if (!defined $amount || $amount eq '' || $amount !~ /^\d+$/ || $amount <= 0) {
+        $cui->error("Invalid amount. Please enter a positive number.");
+        return;
+    }
+
+    # Elder Brother Wu's lending limit: 50,000 yen PER PORT
+    # His agents in each port don't communicate fast enough to track total debt
+    my $max_debt_per_port = 50000;
+    my $current_port = $player{port};
+    my $port_debt_amount = $port_debt{$current_port} || 0;
+    my $available_credit = $max_debt_per_port - $port_debt_amount;
+
+    if ($available_credit <= 0) {
+        $cui->error("Elder Brother Wu's agent in $current_port says:\n'You already owe ¥$port_debt_amount here, Taipan.\nNo more credit from this office!'");
+        return;
+    }
+
+    if ($amount > $available_credit) {
+        $cui->error("Elder Brother Wu's agent in $current_port says:\n'I can only lend you ¥$available_credit more, Taipan.\nYou already owe ¥$port_debt_amount here.\nMy limit is ¥$max_debt_per_port per port.'");
+        return;
+    }
+
+    # Track debt both globally (for interest) and per-port (for borrowing limits)
     $player{debt} += $amount;
+    $port_debt{$current_port} += $amount;
     $player{cash} += $amount;
-    $cui->dialog("Borrowed ¥$amount.");
+
+    debug_log("Borrowed ¥$amount in $current_port. Port debt: ¥$port_debt{$current_port}, Total debt: ¥$player{debt}");
+
+    # Flavor text based on total debt situation
+    my $total_debt = $player{debt};
+    my $dialog_text;
+
+    if ($total_debt > $max_debt_per_port * 2) {
+        # Player owes a lot across multiple ports
+        $dialog_text = "Elder Brother Wu's agent in $current_port lends you ¥$amount.\n\n'Taipan, I hear you owe ¥$total_debt across all our offices...\nBut business is business! This office can still lend you ¥$available_credit more.\n\nJust remember: 10% monthly interest compounds everywhere!'";
+    } elsif ($total_debt > $max_debt_per_port) {
+        # Player has debt in another port
+        $dialog_text = "Elder Brother Wu's agent in $current_port lends you ¥$amount.\n\n'I see you have debts in other ports, Taipan.\nYour total across all offices is ¥$total_debt.\nBut here in $current_port, you still have credit!\n\n10% monthly interest, as always.'";
+    } else {
+        # First or only port with debt
+        $dialog_text = "Elder Brother Wu's agent in $current_port lends you ¥$amount.\n\n'Don't forget the 10% monthly interest, Taipan!\nYour total debt is now ¥$total_debt.'";
+    }
+
+    $cui->dialog($dialog_text);
     update_status();
 }
 
 sub pay_debt {
     my $amount = shift;
+    my $current_port = $player{port};
+
     if ($amount > $player{cash}) {
         $cui->error("Not enough cash.");
-    } elsif ($amount > $player{debt}) {
-        $cui->error("Overpaying debt.");
-    } else {
-        $player{cash} -= $amount;
-        $player{debt} -= $amount;
-        $cui->dialog("Paid ¥$amount toward debt.");
-        update_status();
+        return;
     }
+
+    if ($amount > $player{debt}) {
+        $cui->error("Overpaying debt.");
+        return;
+    }
+
+    # Pay down debt in current port first, then overflow to total debt
+    my $port_debt_amount = $port_debt{$current_port} || 0;
+
+    if ($port_debt_amount > 0) {
+        # Pay down debt from this port's agent
+        my $port_payment = ($amount <= $port_debt_amount) ? $amount : $port_debt_amount;
+        $port_debt{$current_port} -= $port_payment;
+        $player{debt} -= $amount;  # Always reduce global debt by full amount
+        $player{cash} -= $amount;
+
+        debug_log("Paid ¥$amount toward debt in $current_port. Port debt reduced by ¥$port_payment to ¥$port_debt{$current_port}. Total debt now ¥$player{debt}");
+        $cui->dialog("Paid ¥$amount toward debt.\n'Thank you, Taipan!' says Elder Brother Wu's agent in $current_port.\n\nTotal debt remaining: ¥$player{debt}");
+    } else {
+        # No debt in current port, but have debt elsewhere
+        $player{debt} -= $amount;
+        $player{cash} -= $amount;
+
+        debug_log("Paid ¥$amount toward debt (not in current port $current_port). Total debt now ¥$player{debt}");
+        $cui->dialog("Paid ¥$amount toward debt.\n\n'Your debt is not with this office, Taipan,\nbut I will send word to my brothers.'\n\nTotal debt remaining: ¥$player{debt}");
+    }
+
+    update_status();
 }
 
 sub main_loop {

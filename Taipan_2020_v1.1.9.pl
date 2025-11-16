@@ -1197,10 +1197,17 @@ sub input_prompt {
             } else {
                 debug_log("User chose NEW GAME (choice=$choice)");
                 # New game - ask for firm name
+                debug_log("NEW GAME: Setting prompt text");
                 $prompt_label->text("Taipan, What will you name your Firm? > ");
+                debug_log("NEW GAME: Clearing text entry");
                 $text_entry->text('');
+                debug_log("NEW GAME: Setting current_action to name_firm");
                 $current_action = 'name_firm';
+                debug_log("NEW GAME: Calling cui->draw");
+                $cui->draw(1);  # Draw the prompt to screen!
+                debug_log("NEW GAME: Setting focus");
                 $text_entry->focus();
+                debug_log("NEW GAME: Complete, returning from handler");
             }
         } elsif ($current_action eq 'name_firm') {
             debug_log("name_firm: User entered firm name: $value");
