@@ -2,7 +2,6 @@
 # Auto-detect and launch the latest version of Taipan
 
 eval $(perl -I ~/perl5/lib/perl5/ -Mlocal::lib)
-cd ~/taipan_cursed
 
 # Find the latest version by sorting version numbers
 LATEST_VERSION=$(ls -1 Taipan_2020_v*.pl 2>/dev/null | \

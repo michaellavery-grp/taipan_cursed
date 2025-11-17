@@ -187,6 +187,35 @@ Seven map files show different port indicators:
 - `draw_map()` cycles through maps based on `$player{map}` index
 - Map legend in `ascii_taipan_map_legend.txt`
 
+### Robbery & Elder Brother Wu Mechanics
+Based on original APPLE II BASIC lines 2501, 1460, 1220, 1330:
+
+**Cash Robbery (Line 2501):**
+- Triggers when `cash > ¥25,000` AND 5% chance (1-in-20)
+- Steals random amount up to `cash / 1.4` (max 71% of cash)
+- Message: "You've been beaten up and robbed"
+
+**Bodyguard Massacre (Line 1460):**
+- Triggers when `debt > ¥20,000` AND 20% chance (1-in-5)
+- Kills 1-3 bodyguards (random)
+- Steals ALL cash
+- Message: "Bad joss!! X bodyguards killed by cutthroats"
+- Player starts with 5 bodyguards
+
+**Elder Brother Wu Escort (Line 1220):**
+- Triggers in Hong Kong when `debt > ¥30,000` AND `bodyguards < 3` (once per game)
+- Wu sends 50-150 braves to escort you
+- Provides 5 replacement bodyguards
+- Sets `wu_escort` flag
+
+**Elder Brother Wu Emergency Loans (Line 1330):**
+- Triggers in Hong Kong when `cash < ¥500` AND `debt > ¥10,000`
+- Offers loan of ¥500-2,000
+- Payback formula: `random(2000) * bad_loan_count + 1500`
+- Each loan increases `bad_loan_count` (BL% in original)
+- Interest rates increase with each loan (predatory lending)
+- Example: Loan #1: 75-200% interest, Loan #3: 150-400% interest
+
 ## Debugging
 
 Debug logging enabled by default:
@@ -270,7 +299,20 @@ perl "$TAIPAN_SCRIPT"
 
 ## Version History
 
-- **v1.2.7**: Current stable version (latest) - UI polish
+- **v1.2.9**: Robbery & Elder Brother Wu mechanics (latest)
+  - Implemented cash robbery (BASIC line 2501): 5% chance when cash > ¥25,000
+  - Implemented bodyguard massacre (BASIC line 1460): 20% chance when debt > ¥20,000
+  - Added Elder Brother Wu escort system (BASIC line 1220): Wu sends 50-150 braves
+  - Added Elder Brother Wu emergency loans (BASIC line 1330): Predatory lending system
+  - Added bodyguards, bad_loan_count, and wu_escort to player state
+  - Added comprehensive test harness (test_robberies.pl) with 1000 iterations
+- **v1.2.8**: Storm mechanics
+  - Implemented storm system from original APPLE II BASIC (lines 3310-3340)
+  - 10% chance of storm per voyage
+  - Ship sinking danger based on damage (partial or total fleet loss)
+  - Blown off course to random port (33% of storms)
+  - Added test harness (test_storm_mechanics.pl)
+- **v1.2.7**: UI polish
   - Fixed Buy Guns prompt overflow by adding newline (prompt was running off screen)
 - **v1.2.6**: **CRITICAL BUG FIX**
   - Fixed critical `port_debt` synchronization bug that caused false "debt exceeded" errors

@@ -1,24 +1,86 @@
-Sun Nov 16 18:18:21 2025: === TAIPAN STARTED ===
-Sun Nov 16 18:18:21 2025: Splash screen focused
-Sun Nov 16 18:18:21 2025: Splash binding set, starting mainloop
-Sun Nov 16 18:18:23 2025: Splash key pressed - calling clear_splash_screen
-Sun Nov 16 18:18:23 2025: clear_splash_screen called
-Sun Nov 16 18:18:23 2025: About to delete splash label
-Sun Nov 16 18:18:23 2025: Splash label deleted
-Sun Nov 16 18:18:23 2025: Instructions displayed
-Sun Nov 16 18:18:23 2025: Waiting for game choice (N or L)
-Sun Nov 16 18:18:27 2025: User entered game choice: L
-Sun Nov 16 18:18:27 2025: User chose LOAD GAME
-Sun Nov 16 18:18:29 2025: Loaded new format save: player, warehouses, port_debt restored
-Sun Nov 16 18:18:30 2025: Returned from load_game, starting main_loop
-Sun Nov 16 18:18:30 2025: === MAIN_LOOP START ===
-Sun Nov 16 18:18:30 2025: main_loop: Drawing menus
-Sun Nov 16 18:18:30 2025: main_loop: Menus drawn, updating status
-Sun Nov 16 18:18:30 2025: main_loop: Drawing UI and setting focus
-Sun Nov 16 18:18:30 2025: === MAIN_LOOP COMPLETE ===
-Sun Nov 16 18:19:49 2025: Borrowed ¥50000 in Hong Kong. Port debt: ¥50000, Total debt: ¥50000
-Sun Nov 16 18:20:02 2025: Monthly debt interest (10%): debt increased from 50000 to 55000 (+5000)
-Sun Nov 16 18:20:14 2025: Payment overflow of ¥55000 needs distribution to other ports
-Sun Nov 16 18:20:14 2025: Distributed ¥50000 to Hong Kong. Port debt now ¥0
-Sun Nov 16 18:20:14 2025: All debt paid - zeroed out all port_debt values
-Sun Nov 16 18:20:14 2025: Payment complete. Total debt now ¥0
+Mon Nov 17 16:18:15 2025: === TAIPAN STARTED ===
+Mon Nov 17 16:18:15 2025: Splash screen focused
+Mon Nov 17 16:18:15 2025: Splash binding set, starting mainloop
+Mon Nov 17 16:18:17 2025: Splash key pressed - calling clear_splash_screen
+Mon Nov 17 16:18:17 2025: clear_splash_screen called
+Mon Nov 17 16:18:17 2025: About to delete splash label
+Mon Nov 17 16:18:17 2025: Splash label deleted
+Mon Nov 17 16:18:17 2025: Instructions displayed
+Mon Nov 17 16:18:17 2025: Waiting for game choice (N or L)
+Mon Nov 17 16:18:18 2025: User entered game choice: L
+Mon Nov 17 16:18:18 2025: User chose LOAD GAME
+Mon Nov 17 16:18:22 2025: Loaded new format save: player, warehouses, port_debt restored
+Mon Nov 17 16:18:23 2025: Returned from load_game, starting main_loop
+Mon Nov 17 16:18:23 2025: === MAIN_LOOP START ===
+Mon Nov 17 16:18:23 2025: main_loop: Drawing menus
+Mon Nov 17 16:18:23 2025: main_loop: Menus drawn, updating status
+Mon Nov 17 16:18:23 2025: main_loop: Drawing UI and setting focus
+Mon Nov 17 16:18:23 2025: === MAIN_LOOP COMPLETE ===
+Mon Nov 17 16:18:44 2025: === COMBAT_LOOP START: num_ships=46 ===
+Mon Nov 17 16:18:47 2025: Combat loop iteration: num_ships=46, num_on_screen=10, current_action=combat
+Mon Nov 17 16:18:47 2025: Waiting for user input...
+Mon Nov 17 16:18:50 2025: === fight_run_throw START: orders=1, num_ships=46, player ships=6, guns=150 ===
+Mon Nov 17 16:18:50 2025: Fight: total_firepower=900, num_on_screen=10
+Mon Nov 17 16:19:00 2025: Volley size: 10
+Mon Nov 17 16:19:00 2025: Starting volley loop: shots_fired=0, total_firepower=900
+Mon Nov 17 16:19:00 2025: Volley iteration: shots_fired=0, num_ships=46, num_on_screen=10
+Mon Nov 17 16:19:00 2025: Sinking ship in slot 0 with health=0
+Mon Nov 17 16:19:00 2025: Sinking ship in slot 9 with health=-17
+Mon Nov 17 16:19:00 2025: Sinking ship in slot 4 with health=-10
+Mon Nov 17 16:19:00 2025: Sinking ship in slot 8 with health=-5
+Mon Nov 17 16:19:09 2025: Volley iteration: shots_fired=10, num_ships=42, num_on_screen=6
+Mon Nov 17 16:19:10 2025: Sinking ship in slot 2 with health=-24
+Mon Nov 17 16:19:10 2025: Sinking ship in slot 6 with health=-32
+Mon Nov 17 16:19:10 2025: Sinking ship in slot 5 with health=-30
+Mon Nov 17 16:19:10 2025: Sinking ship in slot 4 with health=-32
+Mon Nov 17 16:19:10 2025: Sinking ship in slot 0 with health=-7
+Mon Nov 17 16:19:20 2025: Volley iteration: shots_fired=20, num_ships=37, num_on_screen=5
+Mon Nov 17 16:19:21 2025: Sinking ship in slot 7 with health=-13
+Mon Nov 17 16:19:21 2025: Sinking ship in slot 8 with health=-1
+Mon Nov 17 16:19:26 2025: Volley iteration: shots_fired=30, num_ships=35, num_on_screen=8
+Mon Nov 17 16:19:26 2025: Sinking ship in slot 1 with health=-18
+Mon Nov 17 16:19:26 2025: Sinking ship in slot 0 with health=-12
+Mon Nov 17 16:19:26 2025: Sinking ship in slot 4 with health=-7
+Mon Nov 17 16:19:26 2025: Sinking ship in slot 5 with health=-26
+Mon Nov 17 16:19:26 2025: Sinking ship in slot 6 with health=-8
+Mon Nov 17 16:19:26 2025: Sinking ship in slot 2 with health=-13
+Mon Nov 17 16:19:39 2025: Volley iteration: shots_fired=40, num_ships=29, num_on_screen=4
+Mon Nov 17 16:19:40 2025: Sinking ship in slot 7 with health=-10
+Mon Nov 17 16:19:40 2025: Sinking ship in slot 6 with health=-4
+Mon Nov 17 16:19:40 2025: Sinking ship in slot 8 with health=-7
+Mon Nov 17 16:19:40 2025: Sinking ship in slot 4 with health=-2
+Mon Nov 17 16:19:40 2025: Sinking ship in slot 3 with health=-34
+Mon Nov 17 16:19:40 2025: Sinking ship in slot 1 with health=-13
+Mon Nov 17 16:19:52 2025: Volley iteration: shots_fired=50, num_ships=23, num_on_screen=4
+Mon Nov 17 16:19:54 2025: Sinking ship in slot 0 with health=-27
+Mon Nov 17 16:19:54 2025: Sinking ship in slot 3 with health=-1
+Mon Nov 17 16:19:54 2025: Sinking ship in slot 6 with health=-4
+Mon Nov 17 16:19:54 2025: Sinking ship in slot 8 with health=-13
+Mon Nov 17 16:19:54 2025: Sinking ship in slot 7 with health=-11
+Mon Nov 17 16:19:54 2025: Sinking ship in slot 4 with health=-11
+Mon Nov 17 16:19:54 2025: Sinking ship in slot 2 with health=-19
+Mon Nov 17 16:20:08 2025: Volley iteration: shots_fired=60, num_ships=16, num_on_screen=3
+Mon Nov 17 16:20:09 2025: Sinking ship in slot 0 with health=-14
+Mon Nov 17 16:20:09 2025: Sinking ship in slot 9 with health=-24
+Mon Nov 17 16:20:09 2025: Sinking ship in slot 8 with health=-1
+Mon Nov 17 16:20:09 2025: Sinking ship in slot 2 with health=-9
+Mon Nov 17 16:20:18 2025: Volley iteration: shots_fired=70, num_ships=12, num_on_screen=6
+Mon Nov 17 16:20:19 2025: Sinking ship in slot 0 with health=-32
+Mon Nov 17 16:20:19 2025: Sinking ship in slot 4 with health=-17
+Mon Nov 17 16:20:19 2025: Sinking ship in slot 9 with health=-10
+Mon Nov 17 16:20:19 2025: Sinking ship in slot 1 with health=-28
+Mon Nov 17 16:20:19 2025: Sinking ship in slot 6 with health=-10
+Mon Nov 17 16:20:19 2025: Sinking ship in slot 5 with health=-2
+Mon Nov 17 16:20:31 2025: Volley iteration: shots_fired=80, num_ships=6, num_on_screen=4
+Mon Nov 17 16:20:32 2025: Sinking ship in slot 3 with health=-29
+Mon Nov 17 16:20:32 2025: Sinking ship in slot 7 with health=-23
+Mon Nov 17 16:20:32 2025: Sinking ship in slot 0 with health=-22
+Mon Nov 17 16:20:32 2025: Sinking ship in slot 1 with health=-29
+Mon Nov 17 16:20:32 2025: Sinking ship in slot 2 with health=0
+Mon Nov 17 16:20:32 2025: Sinking ship in slot 8 with health=-17
+Mon Nov 17 16:20:45 2025: Volley loop complete: shots_fired=90, num_ships=0, sk=46
+Mon Nov 17 16:20:45 2025: No enemy damage: num_ships=0, all enemies destroyed
+Mon Nov 17 16:20:47 2025: Fight round complete: num_ships=0, sk=46
+Mon Nov 17 16:20:47 2025: User input received: current_action=, num_ships=0
+Mon Nov 17 16:20:47 2025: Combat ended: num_ships=0
+Mon Nov 17 16:20:47 2025: Victory booty: defeated 46 pirates, earned ¥84759 (base=84321, bonus=438, months=7)

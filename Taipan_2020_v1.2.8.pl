@@ -65,6 +65,9 @@ our %player = (
     damage => 0,  # DM in original BASIC - accumulated damage points
     last_visit => {},  # Track last visit date to each port for spoilage calculation
     last_interest_date => { year => 1860, month => 1, day => 15 },  # Track when interest was last paid
+    bodyguards => 5,  # Number of bodyguards protecting against robbery
+    bad_loan_count => 0,  # BL% - Counter for Elder Brother Wu emergency loans (increases interest)
+    wu_escort => 0,  # WN flag - Whether Elder Brother Wu has sent an escort
 );
 
 our @ports = ('Hong Kong', 'Shanghai', 'Nagasaki', 'Saigon', 'Manila', 'Batavia', 'Singapore');
@@ -2360,9 +2363,9 @@ sub retire {
     if ($score >= 50000) {
         $rank = "Ma Tsu";
     } elsif ($score >= 8000) {
-        $rank = "Master $player{firm_name}";
+        $rank = "Master Taipan";
     } elsif ($score >= 1000) {
-        $rank = $player{firm_name};
+        $rank = "Taipan";
     } elsif ($score >= 500) {
         $rank = "Compradore";
     } else {
@@ -2584,7 +2587,9 @@ sub check_port_events {
         apply_bank_interest();
     }
 
-    # 2. ROBBERY EVENT (Original Taipan formula)
+    # 2. ROBBERY EVENTS (Original Taipan formulas)
+
+    # CASH ROBBERY (Line 2501)
     # Trigger: CA > 25000 AND NOT(FN R(20))
     # Original: 5% chance (1 in 20) when cash > $25,000
     if ($player{cash} > 25000 && int(rand(20)) == 0) {
@@ -2592,11 +2597,101 @@ sub check_port_events {
         my $stolen = int(rand($player{cash} / 1.4));
         $player{cash} -= $stolen;
 
+        debug_log("CASH ROBBERY: ¥$stolen stolen in $port (had ¥" . ($player{cash} + $stolen) . ")");
         $cui->dialog("You've been beaten up and robbed of ¥$stolen in the streets of $port, Taipan!!\n\nBe more careful carrying so much cash!");
         sleep(1);
+        update_status();
     }
 
-    # 2. WAREHOUSE SPOILAGE/THEFT
+    # BODYGUARD MASSACRE (Line 1460)
+    # Trigger: DW > 20000 AND NOT(FN R(5))
+    # Original: 20% chance (1 in 5) when debt > ¥20,000
+    # Effect: Kill 1-3 bodyguards, steal ALL cash
+    if ($player{debt} > 20000 && int(rand(5)) == 0) {
+        my $bodyguards_killed = int(rand(3)) + 1;  # FN R(3) + 1 = 1-3
+        my $cash_lost = $player{cash};
+
+        $player{bodyguards} -= $bodyguards_killed;
+        if ($player{bodyguards} < 0) { $player{bodyguards} = 0; }
+        $player{cash} = 0;
+
+        debug_log("BODYGUARD MASSACRE: $bodyguards_killed killed, ¥$cash_lost stolen, debt=¥$player{debt}");
+
+        my $message = "Bad joss!!\n\n";
+        $message .= "$bodyguards_killed of your bodyguards have been killed by cutthroats!\n\n";
+        $message .= "You have been robbed of ALL your cash: ¥$cash_lost!\n\n";
+        $message .= "Bodyguards remaining: $player{bodyguards}\n";
+        $message .= "Elder Brother Wu's agents grow impatient...";
+
+        $cui->dialog($message);
+        sleep(2);
+        update_status();
+
+        # If out of bodyguards, Elder Brother Wu offers help (below)
+    }
+
+    # ELDER BROTHER WU ESCORT (Line 1220)
+    # When debt is very high AND bodyguards are low, Wu sends protection
+    if ($port eq 'Hong Kong' && $player{debt} > 30000 && $player{bodyguards} < 3 && !$player{wu_escort}) {
+        my $braves = int(rand(100)) + 50;  # FN R(100) + 50 = 50-150 braves
+        $player{wu_escort} = 1;
+        $player{bodyguards} += 5;  # Wu provides new bodyguards
+
+        debug_log("ELDER WU ESCORT: $braves braves sent, debt=¥$player{debt}, bodyguards restored to $player{bodyguards}");
+
+        my $message = "Elder Brother Wu has sent $braves braves to escort you to the Wu mansion, Taipan.\n\n";
+        $message .= "'We cannot have our clients harmed in the streets.\nBad for business.'\n\n";
+        $message .= "He has assigned you 5 new bodyguards.\n";
+        $message .= "'Consider it... an investment in your safety.'";
+
+        $cui->dialog($message);
+        sleep(2);
+        update_status();
+    }
+
+    # ELDER BROTHER WU EMERGENCY LOAN OFFER (Line 1330)
+    # When cash very low AND debt high, Wu offers predatory loans
+    if ($port eq 'Hong Kong' && $player{cash} < 500 && $player{debt} > 10000) {
+        # BL% = BL% + 1
+        $player{bad_loan_count}++;
+
+        # Loan amount: INT(FN R(1500) + 500) = 500-2000
+        my $loan_amount = int(rand(1500)) + 500;
+
+        # Payback: FN R(2000) * BL% + 1500
+        my $payback_amount = int(rand(2000)) * $player{bad_loan_count} + 1500;
+
+        my $interest_rate = int((($payback_amount - $loan_amount) / $loan_amount) * 100);
+
+        debug_log("ELDER WU EMERGENCY LOAN: Offer loan #$player{bad_loan_count}: ¥$loan_amount for ¥$payback_amount payback ($interest_rate% interest)");
+
+        my $message = "Elder Brother is aware of your plight, Taipan.\n\n";
+        $message .= "He is willing to loan you an additional ¥$loan_amount\n";
+        $message .= "if you will pay back ¥$payback_amount.\n\n";
+        $message .= "($interest_rate% interest)\n\n";
+        $message .= "Accept this emergency loan?";
+
+        my $accept = $cui->dialog(
+            -message => $message,
+            -buttons => ['yes', 'no'],
+        );
+
+        if ($accept) {
+            $player{cash} += $loan_amount;
+            $player{debt} += $payback_amount;
+
+            debug_log("ELDER WU EMERGENCY LOAN ACCEPTED: ¥$loan_amount borrowed, ¥$payback_amount added to debt");
+
+            $cui->dialog("Elder Brother Wu smiles thinly.\n\n'Wise choice, Taipan. I knew you'd see reason.'\n\nCash increased by ¥$loan_amount\nDebt increased by ¥$payback_amount");
+            sleep(1);
+            update_status();
+        } else {
+            $cui->dialog("'As you wish, Taipan. But my offer stands... for now.'\n\nElder Brother Wu's expression hardens.");
+            sleep(1);
+        }
+    }
+
+    # 3. WAREHOUSE SPOILAGE/THEFT
     # Check if we've been away from this port for a while
     my $wh = $warehouses{$port};
     my $risk = $port_risk{$port};

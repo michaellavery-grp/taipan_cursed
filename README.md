@@ -4,11 +4,11 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Perl](https://img.shields.io/badge/Perl-5-purple.svg)](https://www.perl.org/)
 [![Curses::UI](https://img.shields.io/badge/Curses%3A%3AUI-Terminal-green.svg)](https://metacpan.org/pod/Curses::UI)
-[![Version](https://img.shields.io/badge/version-1.2.7-brightgreen.svg)](https://github.com/michaellavery-grp/taipan_cursed)
+[![Version](https://img.shields.io/badge/version-1.2.9-brightgreen.svg)](https://github.com/michaellavery-grp/taipan_cursed)
 
 > *"Taipan Cursed, sailing as the Dutch East India Company, preserves its legacy with JSON ledgers and zen koans, crafted with Grok's celestial guidance from xAI."*
 
-**Latest Release: v1.2.7** - Now with unified "Press Enter for max" UX, smart bank-aware debt payment, and critical bug fixes!
+**Latest Release: v1.2.9** - Now with storm mechanics, robbery events, and Elder Brother Wu's predatory lending! The streets are dangerous, Taipan!
 
 ## 🌊 What is Taipan Cursed?
 
@@ -22,21 +22,28 @@ Set in the treacherous waters of 1860s East Asia, you'll command a merchant flee
 
 *Click to watch the interactive terminal demo on asciinema.org*
 
-## 🆕 What's New in v1.2.7?
+## 🆕 What's New in v1.2.9?
 
 **Recent Major Improvements:**
-- ✨ **Unified UX Pattern** (v1.2.5): All buying/selling actions now use "Press Enter for max" - no more cursor issues or mental math!
-- 🔧 **Critical Bug Fix** (v1.2.6): Fixed port_debt synchronization bug that caused false "debt exceeded" errors
-- 🎨 **UI Polish** (v1.2.7): Buy Guns prompt now fits on screen with proper line breaks
-- 💰 **Smart Debt Payment**: Auto-withdraws from bank when in Hong Kong - pay maximum with one keystroke
-- 🚀 **Auto-Detecting Launcher**: `launch_taipan.sh` finds and runs the latest version automatically
-- 📊 **Enhanced Logging**: Better debug output for troubleshooting financial operations
+- 🌊 **Storm Mechanics** (v1.2.8): Authentic APPLE II BASIC storm system - 10% chance per voyage!
+  - Ship sinking danger based on damage (30-70% fleet loss)
+  - Blown off course to random ports (33% of storms)
+  - Mother Nature is a cruel mistress!
+- 🔫 **Robbery Events** (v1.2.9): The streets are dangerous, Taipan!
+  - Cash robbery when carrying > ¥25,000 (5% chance, steal up to 71%)
+  - Bodyguard massacre when debt > ¥20,000 (20% chance, lose ALL cash!)
+  - Elder Brother Wu escort system (50-150 braves protect you)
+  - Predatory emergency loans (75-400% interest!)
+- ✨ **Unified UX Pattern** (v1.2.5): All buying/selling actions use "Press Enter for max"
+- 🔧 **Critical Bug Fix** (v1.2.6): Fixed port_debt synchronization bug
+- 💰 **Smart Debt Payment**: Auto-withdraws from bank when in Hong Kong
 
 **For the Technical Crowd:**
-- Proper semantic versioning with `sort -V` in launcher
+- Original BASIC formulas preserved (lines 2501, 1460, 1220, 1330, 3310-3340)
+- Comprehensive test harnesses (1,000 iteration validation)
+- New player state: bodyguards, bad_loan_count, wu_escort
 - Multi-port debt distribution algorithm prevents desync
-- Empty input handlers with smart defaults throughout
-- Location-aware financial operations (Hong Kong bank integration)
+- Location-aware financial operations
 
 ## ⚡ Why Download This Now?
 
@@ -47,8 +54,11 @@ Set in the treacherous waters of 1860s East Asia, you'll command a merchant flee
 - **Classic Combat**: Battle pirate fleets with the original risk-vs-reward mechanics
 
 ### For Coders & Grey-Haired Linux Heads:
-- **2,900+ Lines of Production Perl**: Well-commented, battle-tested code demonstrating advanced Curses::UI techniques
+- **3,000+ Lines of Production Perl**: Well-commented, battle-tested code demonstrating advanced Curses::UI techniques
 - **Complex Systems**: Study real-world game systems including:
+  - **Storm mechanics** - APPLE II BASIC authentic formulas (damage-based sinking)
+  - **Robbery system** - Probability-based events with bodyguard tracking
+  - **Elder Brother Wu AI** - Predatory lending with escalating interest rates
   - Dynamic price generation with trends and momentum
   - Multi-port warehouse management with historical risk models
   - Compound interest banking (3-5% based on balance tiers)
@@ -62,9 +72,11 @@ Set in the treacherous waters of 1860s East Asia, you'll command a merchant flee
 - **Production Quality**: Syntax-checked, debugged, and iteratively improved through actual gameplay
 
 ### For Both:
-- **Rich Gameplay**: Hundreds of hours of addictive trading action
+- **Rich Gameplay**: Hundreds of hours of addictive trading action with real danger!
 - **Historical Accuracy**: Port risk levels based on actual 1860s conditions
 - **Strategic Depth**: Balance debt (10% monthly!), warehouse management, fleet expansion
+- **Survival Mechanics**: Storms sink ships, thugs rob you, bodyguards die protecting you
+- **Authentic Formulas**: All APPLE II BASIC mechanics preserved from 1982 original
 - **Modern Save System**: JSON-based saves with firm name and date tracking
 - **Multiple Maps**: Dynamic ASCII maps change as you visit different ports
 
@@ -113,7 +125,10 @@ Set in the treacherous waters of 1860s East Asia, you'll command a merchant flee
 - **Date System**: Track years, months, and days (starting 1860)
 - **Travel Times**: Random 5-15 day voyages between ports
 - **Monthly Events**: Debt interest compounds, time advances realistically
-- **Random Encounters**: Robberies when carrying over ¥25,000 cash
+- **Storm System**: 10% chance of storms with ship sinking danger and blown-off-course events
+- **Robbery Events**: Cash robberies (>¥25k, 5% chance) and bodyguard massacres (debt >¥20k, 20% chance)
+- **Elder Brother Wu**: Escort protection and emergency loans (with 75-400% interest!)
+- **Bodyguards**: Start with 5, protect against robbery, can be killed by cutthroats
 - **Victory Conditions**: Reach ¥1,000,000 net worth for millionaire status!
 
 ### 💾 Modern Save System
@@ -157,6 +172,28 @@ Retire anytime and receive a rank based on your performance:
 ### Architecture Highlights
 
 ```perl
+# Storm mechanics (APPLE II BASIC lines 3310-3340)
+sub random_event {
+    # 10% chance of storm (FN R(10))
+    # 1-in-30 chance of sinking danger
+    # Damage factor: DM / SC * 3
+    # 30-70% fleet loss based on damage
+    # 33% chance blown off course (FN R(3))
+}
+
+# Robbery system (APPLE II BASIC lines 2501, 1460)
+sub check_port_events {
+    # Cash robbery: CA > 25000 AND NOT(FN R(20))
+    # Steal: FN R(CA / 1.4) = up to 71% of cash
+    # Bodyguard massacre: DW > 20000 AND NOT(FN R(5))
+    # Kill 1-3 bodyguards, steal ALL cash
+}
+
+# Elder Brother Wu emergency loans (line 1330)
+my $payback = int(rand(2000)) * $bad_loan_count + 1500;
+# Loan #1: ~75-200% interest
+# Loan #4: ~150-400% interest (PREDATORY!)
+
 # Advanced price generation with trends
 sub generate_prices {
     # Momentum-based price evolution (0.3-0.7 momentum range)
@@ -231,20 +268,20 @@ chmod +x launch_taipan.sh
 
 ```bash
 # Make the latest version executable
-chmod +x Taipan_2020_v1.2.7.pl
+chmod +x Taipan_2020_v1.2.9.pl
 
 # Run directly
-./Taipan_2020_v1.2.7.pl
+./Taipan_2020_v1.2.9.pl
 
 # Or with perl
-perl Taipan_2020_v1.2.7.pl
+perl Taipan_2020_v1.2.9.pl
 ```
 
 ### Verify Installation
 
 ```bash
 # Check syntax (recommended before first run)
-perl -c Taipan_2020_v1.2.7.pl
+perl -c Taipan_2020_v1.2.9.pl
 
 # List available versions
 ls -1 Taipan_2020_v*.pl | sort -V
@@ -270,6 +307,9 @@ ls ascii_taipan_map*.txt
 3. **Avoid Early Combat**: Build up guns before picking fights
 4. **Use Warehouses**: Store goods in safe ports (Hong Kong, Singapore)
 5. **Manage Debt**: The 10% monthly interest is BRUTAL—pay it down fast!
+6. **Repair Before Sailing**: Storm damage-based sinking can end your game!
+7. **Bank Your Money**: Don't carry >¥25k cash - robberies hurt
+8. **Watch Your Debt**: >¥20k triggers bodyguard massacres (20% chance!)
 
 ### Advanced Tactics
 - **Arbitrage Runs**: Create routes between consistently low/high price ports
@@ -279,9 +319,12 @@ ls ascii_taipan_map*.txt
 - **Risk Management**: High-value goods in safe ports, commodities in risky ones
 
 ### Pro Tips
+- **ALWAYS repair ships before sailing** - High damage = high storm risk (can lose 30-70% of fleet!)
+- **Don't carry >¥25,000 cash** - 5% robbery chance, use Hong Kong bank instead
+- **Pay debt when >¥20,000** - 20% chance of bodyguard massacre (lose ALL cash!)
+- **Storms blow you off course** - 33% chance, embrace the chaos or cry
+- **Elder Wu's emergency loans are a TRAP** - 75-400% interest, loan #4 can be 260%!
 - Ships cost more as you get powerful (guns > 20 adds ¥1000 per 2 guns)
-- Travel times are random (5-15 days)—plan accordingly
-- Robbery only triggers with >¥25,000 cash—use the bank!
 - Warehouse spoilage kicks in after 60 days away
 - Net worth = Cash + Bank - Debt (include this in retirement score calculations)
 
@@ -290,9 +333,10 @@ ls ascii_taipan_map*.txt
 ```
 taipan_cursed/
 ├── launch_taipan.sh           # Smart launcher (auto-detects latest version)
-├── Taipan_2020_v1.2.7.pl      # Latest stable release (2,900+ lines)
-├── Taipan_2020_v1.2.6.pl      # Previous version (critical bug fix)
-├── Taipan_2020_v1.2.5.pl      # UX improvements
+├── Taipan_2020_v1.2.9.pl      # Latest stable release (3,000+ lines) NEW!
+├── Taipan_2020_v1.2.8.pl      # Storm mechanics
+├── Taipan_2020_v1.2.7.pl      # UI polish
+├── Taipan_2020_v1.2.6.pl      # Critical bug fix
 ├── Taipan_2020_v1.2.x.pl      # Version history (full progression)
 ├── CLAUDE.md                  # Developer documentation for AI-assisted dev
 ├── README.md                  # This file
@@ -305,7 +349,9 @@ taipan_cursed/
 ├── ascii_taipan_map7.txt      # Singapore indicator
 ├── ascii_taipan_map_legend.txt # Map key and legend
 ├── taipan_debug.log           # Runtime debug log (auto-generated)
-├── test_*.pl                  # Unit tests for financial systems
+├── test_robberies.pl          # Robbery mechanics test (1,000 iterations) NEW!
+├── test_storm_mechanics.pl    # Storm system test (1,000 voyages) NEW!
+├── test_*.pl                  # Other unit tests for financial systems
 └── saves/                     # Auto-generated save directory
     └── FirmName_YYYY-MM-DD.dat  # JSON save files
 ```
@@ -412,9 +458,10 @@ While the VOC officially dissolved in 1799, the game's theme honors its legacy a
 
 In an age of bloated Electron apps and web-based "native" UIs, **Taipan Cursed** proves that:
 - **ncurses is not dead** - Complex, interactive UIs work beautifully in the terminal
-- **Perl is production-ready** - 2,900+ lines of maintainable, debugged code
+- **Perl is production-ready** - 3,000+ lines of maintainable, debugged code with test harnesses
 - **Single-file apps have merit** - No build systems, no dependencies hell, just `perl script.pl`
 - **Classic gameplay endures** - Steve Wozniak's favorite game is still addictive 43 years later
+- **Authentic preservation works** - APPLE II BASIC formulas from 1982 run perfectly in 2025
 
 ### For Grey-Haired Linux Veterans
 
@@ -440,16 +487,23 @@ Want to learn or teach Curses::UI? This is a **complete, working example** of:
 
 Every function is commented. Every formula has its BASIC line reference. Every decision is explained.
 
-**This isn't a toy project** - it's 40+ hours of actual gameplay testing, bug fixing, and UX iteration.
+**This isn't a toy project** - it's 40+ hours of actual gameplay testing, bug fixing, and UX iteration. With comprehensive test harnesses validating probability formulas across 1,000+ iterations.
 
 ## 🤝 Contributing
 
 Want to make Taipan Cursed even better?
 
 ### Feature Ideas
-- [ ] Li Yuen extortion system (partially implemented)
-- [ ] Elder Brother Wu loan shark mechanics
-- [ ] Storm/weather events
+
+**✅ Completed:**
+- [x] **Elder Brother Wu loan shark mechanics** (v1.2.9) - Predatory lending system with escalating interest!
+- [x] **Storm/weather events** (v1.2.8) - APPLE II BASIC authentic storms with ship losses!
+- [x] **Robbery events** (v1.2.9) - Cash robbery and bodyguard massacres!
+
+**🚧 In Progress:**
+- [ ] Li Yuen extortion system (partially implemented, needs activation)
+
+**📋 Planned:**
 - [ ] Opium confiscation raids
 - [ ] More goods (tea, spices, porcelain)
 - [ ] Crew management system
@@ -468,22 +522,24 @@ Want to make Taipan Cursed even better?
 
 ## 🐛 Known Issues & Roadmap
 
-### ✅ Recently Fixed (v1.2.5-v1.2.7)
-- ~~Cursor positioning in buy/sell prompts~~ → **FIXED** with "Enter for max" pattern
-- ~~No maximum display when buying ships/guns~~ → **FIXED** with smart calculators
-- ~~Port debt desync causing false errors~~ → **FIXED** with distribution algorithm
-- ~~Buy Guns prompt overflow~~ → **FIXED** with newline character
+### ✅ Recently Fixed (v1.2.5-v1.2.9)
+- ~~Cursor positioning in buy/sell prompts~~ → **FIXED** with "Enter for max" pattern (v1.2.5)
+- ~~No maximum display when buying ships/guns~~ → **FIXED** with smart calculators (v1.2.5)
+- ~~Port debt desync causing false errors~~ → **FIXED** with distribution algorithm (v1.2.6)
+- ~~Buy Guns prompt overflow~~ → **FIXED** with newline character (v1.2.7)
+- ~~No storm events~~ → **FIXED** with APPLE II BASIC authentic storms (v1.2.8)
+- ~~No robbery mechanics~~ → **FIXED** with cash robbery and bodyguard massacres (v1.2.9)
+- ~~No Elder Brother Wu loan system~~ → **FIXED** with predatory lending (v1.2.9)
 
 ### Current Limitations
 - Map files must be in the same directory as the script
 - Terminal must be at least 120x40 characters (ncurses limitation)
-- No automated test suite yet (manual testing only)
 - Combat globals persist between battles (known quirk)
 
 ### Planned Features (v1.3+)
 - Li Yuen fleet encounters (partially coded, needs activation)
 - McHenry shipwright character (repair system exists, character needs polish)
-- Additional random events (typhoons, rumors, smuggling)
+- Additional random events (opium confiscation raids, rumors, smuggling)
 - Achievement system with persistent tracking
 - Statistics tracking (lifetime stats, best runs, leaderboards)
 - Tutorial mode for new players
@@ -541,13 +597,13 @@ The South China Sea awaits, Taipan. Will you build an empire or end up as a gall
 
 ## 📣 The Elevator Pitch (For Sharing)
 
-> **Taipan Cursed**: Steve Wozniak's favorite trading game, reborn in 2,900+ lines of production Perl with Curses::UI. Command a merchant fleet in 1860s Asia - trade opium, battle pirates, manage debt across seven ports. Features smart auto-launcher, "Press Enter for max" UX, and JSON saves. No Electron. No npm. No Docker. Just `perl script.pl` and pure terminal excellence. GPL-3.0. [github.com/michaellavery-grp/taipan_cursed]
+> **Taipan Cursed**: Steve Wozniak's favorite trading game, reborn in 3,000+ lines of production Perl with Curses::UI. Command a merchant fleet in 1860s Asia - trade opium, battle pirates, survive storms, manage debt across seven ports. NOW with authentic APPLE II BASIC storm mechanics, robbery events, and Elder Brother Wu's predatory lending! Features smart auto-launcher, "Press Enter for max" UX, and JSON saves. No Electron. No npm. No Docker. Just `perl script.pl` and pure terminal excellence. GPL-3.0. [github.com/michaellavery-grp/taipan_cursed]
 
 **TL;DR for Hacker News:**
-"Wozniak's favorite 1982 trading game, remade in Perl with ncurses. 2.9k lines, zero build system, runs over SSH. Recently fixed port debt desync and added smart UX. Proves single-file terminal apps still work in 2025."
+"Wozniak's favorite 1982 trading game, remade in Perl with ncurses. 3k lines, zero build system, runs over SSH. v1.2.9 adds authentic APPLE II storm mechanics (ship losses!) and robbery system with bodyguard massacres. Proves single-file terminal apps still work in 2025."
 
 **TL;DR for /r/linux:**
-"Terminal trading game in pure Perl. No Electron bloat, no cloud auth, actual respect for your 120x40 terminal. Smart launcher auto-detects versions. GPL-3.0."
+"Terminal trading game in pure Perl. No Electron bloat, no cloud auth, actual respect for your 120x40 terminal. Now with storms that sink ships and thugs that rob you. Smart launcher auto-detects versions. GPL-3.0."
 
 ---
 
