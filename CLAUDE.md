@@ -9,11 +9,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Running the Game
 
 ```bash
-# Run the latest version
-./Taipan_2020_v1.1.0.pl
+# Recommended: Use the launch script (handles local::lib)
+./launch_taipan.sh
+
+# Or run the latest version directly
+./Taipan_2020_v1.2.7.pl
 
 # Or with perl directly
-perl Taipan_2020_v1.1.0.pl
+perl Taipan_2020_v1.2.7.pl
 ```
 
 **Prerequisites:**
@@ -21,23 +24,36 @@ perl Taipan_2020_v1.1.0.pl
 - Terminal must be at least 120x40 characters
 - ASCII map files (`ascii_taipan_map*.txt`) must be in same directory
 
+**Note:** If you have Perl modules installed via `local::lib`, use `launch_taipan.sh` which sets up the environment correctly.
+
 ## Development Workflow
 
 **IMPORTANT: Always follow this workflow when making code changes:**
 
-1. Make code changes to current version
+1. Make code changes to current version (currently v1.2.7)
 2. **Run syntax check:** `perl -c Taipan_2020_vX.X.X.pl`
 3. Fix any syntax errors
 4. Copy to new version: `cp Taipan_2020_vX.X.X.pl Taipan_2020_vX.X.Y.pl`
-5. Test the new version
+5. Test the new version thoroughly (launch_taipan.sh will auto-detect it)
 6. Update CLAUDE.md version history if significant changes
 
+**Note:** `launch_taipan.sh` automatically detects and launches the latest version, so no manual updates needed!
+
 **Never skip the syntax check!** Running `perl -c` catches errors before runtime and saves debugging time.
+
+### Testing
+
+The repository includes test scripts for specific features:
+- `test_usury.pl`: Tests the 20% maximum usury rate (interest cap)
+- `test_multiport_borrowing.pl`: Tests debt limits across multiple ports
+- `test_transaction_maximums.pl`: Tests transaction limits and validation
+
+Run these after making changes to financial systems.
 
 ## Architecture Overview
 
 ### Single-File Monolith Design
-The entire game is in `Taipan_2020_v1.1.0.pl` (~2,500 lines). This is intentional - it's a self-contained terminal game without external dependencies beyond Perl modules.
+The entire game is in `Taipan_2020_v1.2.7.pl` (~2,900+ lines). This is intentional - it's a self-contained terminal game without external dependencies beyond Perl modules. Multiple versions exist in the repository for version tracking.
 
 ### Core Data Structures
 
@@ -105,7 +121,8 @@ Four menus accessed via TAB/cursor keys:
 **Banking & Finance:**
 - `deposit()`, `withdraw()`: Hong Kong/Shanghai bank operations
 - `apply_bank_interest()`: Tiered rates (3-5% annual, compounded monthly)
-- `borrow()`, `pay_debt()`: Debt at 10% monthly compound interest (historically accurate!)
+- `borrow()`, `pay_debt()`: Debt with 20% maximum usury rate cap per port
+- Multi-port borrowing: Can borrow up to debt limit (e.g., 10k) at each port independently
 
 **Ship Management:**
 - `buy_ships()`: Dynamic pricing - base ¥10,000 + ¥1,000 per 2 guns over 20
@@ -179,6 +196,42 @@ sub debug_log { ... }
 ```
 Log file is created in the same directory as the script.
 
+**Checking logs:**
+```bash
+tail -f taipan_debug.log  # Watch logs in real-time
+grep "ERROR" taipan_debug.log  # Search for errors
+```
+
+## Launcher Script
+
+The `launch_taipan.sh` script handles environment setup and **automatically detects the latest version**:
+```bash
+#!/bin/bash
+# Auto-detect and launch the latest version of Taipan
+
+eval $(perl -I ~/perl5/lib/perl5/ -Mlocal::lib)
+cd ~/taipan_cursed
+
+# Find the latest version by sorting version numbers
+LATEST_VERSION=$(ls -1 Taipan_2020_v*.pl 2>/dev/null | \
+    grep -v "massive_updates" | \
+    sed 's/Taipan_2020_v//' | \
+    sed 's/.pl$//' | \
+    sort -V | \
+    tail -1)
+
+TAIPAN_SCRIPT="Taipan_2020_v${LATEST_VERSION}.pl"
+echo "Launching $TAIPAN_SCRIPT..."
+perl "$TAIPAN_SCRIPT"
+```
+
+**Benefits:**
+- **No manual updates needed** - Script automatically finds and launches the newest version
+- Uses version sorting (`sort -V`) to correctly handle version numbers (e.g., 1.2.10 > 1.2.9)
+- Excludes `Taipan_massive_updates.pl` from version detection
+- The script sets up `local::lib` for Perl modules installed in user directory
+- Change the `cd` path if the game is installed elsewhere
+
 ## Common Modifications
 
 ### Adding a New Menu Action
@@ -188,19 +241,24 @@ Log file is created in the same directory as the script.
 4. Create the handler function
 
 ### Adjusting Game Balance
-- **Base prices**: Modify `%goods` hash (line ~118)
+- **Base prices**: Modify `%goods` hash (search for "our %goods")
 - **Price volatility**: Adjust `volatility` values in `%goods`
-- **Interest rates**: Modify `calculate_interest_rate()` (line ~2287)
-- **Debt interest**: Change multiplier in `advance_date()` (line ~441, currently 0.1 = 10%)
-- **Combat difficulty**: Adjust `$ec`, `$ed`, `$s0` constants (lines 146-149)
-- **Warehouse risk**: Modify `%port_risk` hash (lines 83-91)
+- **Interest rates**: Modify `calculate_interest_rate()` function
+- **Usury cap**: Modify the 20% maximum usury rate in borrow logic
+- **Debt limits**: Adjust per-port debt limits (currently 10k per port)
+- **Combat difficulty**: Adjust `$ec`, `$ed`, `$s0` constants
+- **Warehouse risk**: Modify `%port_risk` hash
+
+**Note:** Line numbers may shift between versions. Use `grep` or search functionality to locate specific code sections.
 
 ### Adding New Ports
-1. Add to `@ports` array (line 67)
-2. Add warehouse entry to `%warehouses` (lines 71-79)
-3. Add risk level to `%port_risk` (lines 83-91)
-4. Create new ASCII map file and add to `@filenames` (line 94)
+1. Add to `@ports` array (search for "our @ports")
+2. Add warehouse entry to `%warehouses` hash
+3. Add risk level to `%port_risk` hash
+4. Create new ASCII map file and add to `@filenames` array
 5. Trends and prices auto-generate for new ports
+
+**Note:** Search for these variables in the code rather than relying on line numbers, as they shift between versions.
 
 ## Gotchas & Known Issues
 
@@ -212,8 +270,28 @@ Log file is created in the same directory as the script.
 
 ## Version History
 
-- **v1.1.1**: Fixed hardcoded debug log path (now relative), added debug logging, improved splash screen flow
+- **v1.2.7**: Current stable version (latest) - UI polish
+  - Fixed Buy Guns prompt overflow by adding newline (prompt was running off screen)
+- **v1.2.6**: **CRITICAL BUG FIX**
+  - Fixed critical `port_debt` synchronization bug that caused false "debt exceeded" errors
+  - When paying debt at one port that exceeds that port's portion, payment now properly distributes to other ports
+  - Added safety check to zero all port_debt values when total debt reaches 0
+  - Enhanced debug logging for debt payment distribution
+- **v1.2.5**: UX improvements for all purchase/payment actions
+  - Fixed cursor positioning issue in buy/sell goods (switched to "Enter for max" pattern)
+  - Added maximum calculation and display for buying ships
+  - Added maximum calculation and display for buying guns
+  - Added smart debt payment with auto-withdraw from bank in Hong Kong
+  - Unified "Press Enter for maximum" pattern across all transactions
+- **v1.2.4**: Previous stable version
+- **v1.2.3**: Usury rate implementation and multi-port borrowing
+- **v1.2.2**: Transaction maximum improvements
+- **v1.2.1**: Enhanced financial system validation
+- **v1.2.0**: Major financial system overhaul
+- **v1.1.9-v1.1.1**: Various splash screen and UI improvements
 - **v1.1.0**: Enhanced splash screen, load game dialog, dynamic ship pricing display
 - **v1.0.1**: Previous stable release
 - **v1.0.0**: First full release with all core features
 - **v0.1.1**: Early alpha version
+
+**Current Active Version:** v1.2.7 (see `launch_taipan.sh` for currently configured version)

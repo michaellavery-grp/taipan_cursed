@@ -4,14 +4,39 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Perl](https://img.shields.io/badge/Perl-5-purple.svg)](https://www.perl.org/)
 [![Curses::UI](https://img.shields.io/badge/Curses%3A%3AUI-Terminal-green.svg)](https://metacpan.org/pod/Curses::UI)
+[![Version](https://img.shields.io/badge/version-1.2.7-brightgreen.svg)](https://github.com/michaellavery-grp/taipan_cursed)
 
 > *"Taipan Cursed, sailing as the Dutch East India Company, preserves its legacy with JSON ledgers and zen koans, crafted with Grok's celestial guidance from xAI."*
+
+**Latest Release: v1.2.7** - Now with unified "Press Enter for max" UX, smart bank-aware debt payment, and critical bug fixes!
 
 ## 🌊 What is Taipan Cursed?
 
 **Taipan Cursed** is a loving, massively enhanced Perl remake of the legendary 1982 Apple II trading game *Taipan!* by Art Canfil. This isn't just a port—it's a complete reimagining that combines the addictive trading gameplay of the original with modern features that would make even the Dutch East India Company jealous.
 
 Set in the treacherous waters of 1860s East Asia, you'll command a merchant fleet, battle pirates, manipulate markets, and build a trading empire across seven ports from Hong Kong to Batavia. With its terminal-based `Curses::UI` interface, ASCII art maps, and sophisticated economic simulation, Taipan Cursed delivers authentic retro gaming with depth that modern gamers will appreciate.
+
+## 🎬 See It In Action
+
+[![asciicast](https://asciinema.org/a/p3YKBEUuIeAwF23v3qWioQAUs.svg)](https://asciinema.org/a/p3YKBEUuIeAwF23v3qWioQAUs)
+
+*Click to watch the interactive terminal demo on asciinema.org*
+
+## 🆕 What's New in v1.2.7?
+
+**Recent Major Improvements:**
+- ✨ **Unified UX Pattern** (v1.2.5): All buying/selling actions now use "Press Enter for max" - no more cursor issues or mental math!
+- 🔧 **Critical Bug Fix** (v1.2.6): Fixed port_debt synchronization bug that caused false "debt exceeded" errors
+- 🎨 **UI Polish** (v1.2.7): Buy Guns prompt now fits on screen with proper line breaks
+- 💰 **Smart Debt Payment**: Auto-withdraws from bank when in Hong Kong - pay maximum with one keystroke
+- 🚀 **Auto-Detecting Launcher**: `launch_taipan.sh` finds and runs the latest version automatically
+- 📊 **Enhanced Logging**: Better debug output for troubleshooting financial operations
+
+**For the Technical Crowd:**
+- Proper semantic versioning with `sort -V` in launcher
+- Multi-port debt distribution algorithm prevents desync
+- Empty input handlers with smart defaults throughout
+- Location-aware financial operations (Hong Kong bank integration)
 
 ## ⚡ Why Download This Now?
 
@@ -21,8 +46,8 @@ Set in the treacherous waters of 1860s East Asia, you'll command a merchant flee
 - **ASCII Art Beauty**: Hand-crafted maps of the South China Sea with dynamic port indicators
 - **Classic Combat**: Battle pirate fleets with the original risk-vs-reward mechanics
 
-### For Coders:
-- **2,500+ Lines of Clean Perl**: Well-commented, modular code demonstrating advanced Curses::UI techniques
+### For Coders & Grey-Haired Linux Heads:
+- **2,900+ Lines of Production Perl**: Well-commented, battle-tested code demonstrating advanced Curses::UI techniques
 - **Complex Systems**: Study real-world game systems including:
   - Dynamic price generation with trends and momentum
   - Multi-port warehouse management with historical risk models
@@ -30,8 +55,11 @@ Set in the treacherous waters of 1860s East Asia, you'll command a merchant flee
   - Sophisticated combat AI with flee mechanics
   - Time-based event system with spoilage and theft
   - JSON save/load with ledger-style persistence
+  - Multi-port debt tracking with automatic distribution on payment
 - **Perfect Learning Project**: Graduate from "Hello World" to full terminal UIs
+- **Smart Auto-Launcher**: Version-agnostic launcher script using `sort -V` for proper semantic versioning
 - **Extensible Architecture**: Easy to add new ports, goods, events, or mechanics
+- **Production Quality**: Syntax-checked, debugged, and iteratively improved through actual gameplay
 
 ### For Both:
 - **Rich Gameplay**: Hundreds of hours of addictive trading action
@@ -167,14 +195,17 @@ sub fight_run_throw {
 # Perl 5 (usually pre-installed on Unix systems)
 perl --version
 
-# Required Perl modules
-cpan Curses::UI
-cpan JSON
-cpan List::Util
-cpan POSIX
+# Required Perl modules (install via cpan or your package manager)
+cpan Curses::UI JSON List::Util POSIX
+
+# Or on Debian/Ubuntu:
+# sudo apt-get install libcurses-ui-perl libjson-perl
+
+# For local::lib users (recommended for user-space installs):
+cpan local::lib
 ```
 
-### Quick Start
+### Quick Start (Smart Launcher Method - Recommended)
 
 ```bash
 # Clone the repository
@@ -184,14 +215,42 @@ cd taipan_cursed
 # Switch to the latest release branch
 git checkout Taipan_v1.0_alpha
 
-# Make executable
-chmod +x Taipan_2020_v1_1_0.pl
+# Make launcher executable
+chmod +x launch_taipan.sh
 
-# Ensure ASCII map files are in the same directory
+# Launch the game (auto-detects latest version)
+./launch_taipan.sh
+```
+
+**The smart launcher automatically:**
+- Finds the latest version using semantic versioning
+- Sets up `local::lib` if you use it
+- Runs the newest `.pl` file without manual updates
+
+### Manual Launch (Advanced Users)
+
+```bash
+# Make the latest version executable
+chmod +x Taipan_2020_v1.2.7.pl
+
+# Run directly
+./Taipan_2020_v1.2.7.pl
+
+# Or with perl
+perl Taipan_2020_v1.2.7.pl
+```
+
+### Verify Installation
+
+```bash
+# Check syntax (recommended before first run)
+perl -c Taipan_2020_v1.2.7.pl
+
+# List available versions
+ls -1 Taipan_2020_v*.pl | sort -V
+
+# Check for ASCII maps (required)
 ls ascii_taipan_map*.txt
-
-# Launch the game
-./Taipan_2020_v1_1_0.pl
 ```
 
 ### First Run
@@ -230,22 +289,32 @@ ls ascii_taipan_map*.txt
 
 ```
 taipan_cursed/
-├── Taipan_2020_v1_1_0.pl      # Latest version (2,515 lines)
-├── Taipan_2020_v1_0_1.pl      # Previous release
-├── Taipan_2020_v1_0_0.pl      # Earlier version
-├── ascii_taipan_map1.txt      # Home port map
+├── launch_taipan.sh           # Smart launcher (auto-detects latest version)
+├── Taipan_2020_v1.2.7.pl      # Latest stable release (2,900+ lines)
+├── Taipan_2020_v1.2.6.pl      # Previous version (critical bug fix)
+├── Taipan_2020_v1.2.5.pl      # UX improvements
+├── Taipan_2020_v1.2.x.pl      # Version history (full progression)
+├── CLAUDE.md                  # Developer documentation for AI-assisted dev
+├── README.md                  # This file
+├── ascii_taipan_map1.txt      # Home port map (Hong Kong)
 ├── ascii_taipan_map2.txt      # Shanghai indicator
 ├── ascii_taipan_map3.txt      # Nagasaki indicator
 ├── ascii_taipan_map4.txt      # Saigon indicator
 ├── ascii_taipan_map5.txt      # Manila indicator
 ├── ascii_taipan_map6.txt      # Batavia indicator
 ├── ascii_taipan_map7.txt      # Singapore indicator
-├── ascii_taipan_map_legend.txt # Map key
+├── ascii_taipan_map_legend.txt # Map key and legend
+├── taipan_debug.log           # Runtime debug log (auto-generated)
+├── test_*.pl                  # Unit tests for financial systems
 └── saves/                     # Auto-generated save directory
-    └── *.dat                  # JSON save files
+    └── FirmName_YYYY-MM-DD.dat  # JSON save files
 ```
 
-## 🎨 Screenshots
+## 🎨 Screenshots & Demo
+
+**📺 [Watch the interactive demo on asciinema.org](https://asciinema.org/a/p3YKBEUuIeAwF23v3qWioQAUs)** (click to play, pause, copy text!)
+
+### Static UI Preview
 
 ```
 ┌─ Known World ───────────────────────┐┌─ Status ────────────┐
@@ -337,6 +406,42 @@ While the VOC officially dissolved in 1799, the game's theme honors its legacy a
 - At its peak, worth ~$7.9 trillion in modern terms
 - Operated for 198 years (1602-1800)
 
+## 🎯 Why This Project Matters (For the Community)
+
+### A Testament to Terminal Excellence
+
+In an age of bloated Electron apps and web-based "native" UIs, **Taipan Cursed** proves that:
+- **ncurses is not dead** - Complex, interactive UIs work beautifully in the terminal
+- **Perl is production-ready** - 2,900+ lines of maintainable, debugged code
+- **Single-file apps have merit** - No build systems, no dependencies hell, just `perl script.pl`
+- **Classic gameplay endures** - Steve Wozniak's favorite game is still addictive 43 years later
+
+### For Grey-Haired Linux Veterans
+
+You've been here since before package managers. You remember when games fit on a floppy. **This is for you:**
+- No `npm install` with 800MB of dependencies
+- No Docker containers for a damn trading game
+- No cloud authentication or "always online" DRM
+- Just Perl 5 (already on your system) and a few CPAN modules
+- Runs in `tmux`, works over SSH, logs to a simple text file
+- **Actual respect for your terminal width**
+
+### For Open-Source Hackers
+
+Want to learn or teach Curses::UI? This is a **complete, working example** of:
+- Multi-window layouts with dynamic updates
+- Input handling and validation patterns
+- State management in a single-threaded event loop
+- Debugging terminal applications
+- Version management with semantic versioning
+- AI-assisted development workflow (see `CLAUDE.md`)
+
+### The Code is the Documentation
+
+Every function is commented. Every formula has its BASIC line reference. Every decision is explained.
+
+**This isn't a toy project** - it's 40+ hours of actual gameplay testing, bug fixing, and UX iteration.
+
 ## 🤝 Contributing
 
 Want to make Taipan Cursed even better?
@@ -363,19 +468,27 @@ Want to make Taipan Cursed even better?
 
 ## 🐛 Known Issues & Roadmap
 
-### Current Limitations
-- Debug log path is hardcoded (line 19) - customize for your system
-- Map files must be in the same directory as the script
-- Terminal must be at least 120x40 characters
-- No automated tests yet
+### ✅ Recently Fixed (v1.2.5-v1.2.7)
+- ~~Cursor positioning in buy/sell prompts~~ → **FIXED** with "Enter for max" pattern
+- ~~No maximum display when buying ships/guns~~ → **FIXED** with smart calculators
+- ~~Port debt desync causing false errors~~ → **FIXED** with distribution algorithm
+- ~~Buy Guns prompt overflow~~ → **FIXED** with newline character
 
-### Planned Features (v1.2+)
+### Current Limitations
+- Map files must be in the same directory as the script
+- Terminal must be at least 120x40 characters (ncurses limitation)
+- No automated test suite yet (manual testing only)
+- Combat globals persist between battles (known quirk)
+
+### Planned Features (v1.3+)
 - Li Yuen fleet encounters (partially coded, needs activation)
 - McHenry shipwright character (repair system exists, character needs polish)
 - Additional random events (typhoons, rumors, smuggling)
-- Achievement system
-- Statistics tracking (lifetime stats, best runs)
+- Achievement system with persistent tracking
+- Statistics tracking (lifetime stats, best runs, leaderboards)
 - Tutorial mode for new players
+- Optional color themes
+- Configuration file for easy modding
 
 ## 📖 Original Taipan! Legacy
 
@@ -412,11 +525,29 @@ Plus, mastering the 10% monthly compound debt interest feels like a curse until 
 
 ## 🎯 Final Words
 
-Whether you're a retro gamer chasing nostalgia, a Perl programmer seeking a substantial codebase to study, or simply someone who loves deep economic strategy games, **Taipan Cursed** offers hundreds of hours of engaging gameplay wrapped in beautiful terminal aesthetics.
+Whether you're a retro gamer chasing nostalgia, a Perl programmer seeking a substantial codebase to study, a grey-haired Linux veteran who remembers when software was simple, or someone who loves deep economic strategy games, **Taipan Cursed** offers hundreds of hours of engaging gameplay wrapped in beautiful terminal aesthetics.
+
+**This is what software can be:**
+- Self-contained (one file, one command)
+- Debuggable (text log, JSON saves)
+- Extensible (well-commented, modular design)
+- Respectful (no telemetry, no ads, no cloud, just you and your terminal)
 
 The South China Sea awaits, Taipan. Will you build an empire or end up as a galley hand?
 
 **Fair winds and following seas!** ⚓
+
+---
+
+## 📣 The Elevator Pitch (For Sharing)
+
+> **Taipan Cursed**: Steve Wozniak's favorite trading game, reborn in 2,900+ lines of production Perl with Curses::UI. Command a merchant fleet in 1860s Asia - trade opium, battle pirates, manage debt across seven ports. Features smart auto-launcher, "Press Enter for max" UX, and JSON saves. No Electron. No npm. No Docker. Just `perl script.pl` and pure terminal excellence. GPL-3.0. [github.com/michaellavery-grp/taipan_cursed]
+
+**TL;DR for Hacker News:**
+"Wozniak's favorite 1982 trading game, remade in Perl with ncurses. 2.9k lines, zero build system, runs over SSH. Recently fixed port debt desync and added smart UX. Proves single-file terminal apps still work in 2025."
+
+**TL;DR for /r/linux:**
+"Terminal trading game in pure Perl. No Electron bloat, no cloud auth, actual respect for your 120x40 terminal. Smart launcher auto-detects versions. GPL-3.0."
 
 ---
 
@@ -425,10 +556,13 @@ The South China Sea awaits, Taipan. Will you build an empire or end up as a gall
 - 💬 [Discussions](https://github.com/michaellavery-grp/taipan_cursed/discussions)
 - ⭐ [Star this repo](https://github.com/michaellavery-grp/taipan_cursed) if you enjoy the game!
 - 🍴 [Fork it](https://github.com/michaellavery-grp/taipan_cursed/fork) to create your own version
+- 📖 [Read CLAUDE.md](CLAUDE.md) for developer documentation
 
 ---
 
-*Made with ❤️ for terminal enthusiasts and retro gamers everywhere*
+*Made with ❤️ for terminal enthusiasts, grey-haired Linux veterans, and retro gamers everywhere*
+
+**No cloud. No containers. No compilation. Just Perl and ncurses excellence.**
 
 ```
                ~~|     ,                    
