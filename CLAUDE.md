@@ -13,10 +13,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ./launch_taipan.sh
 
 # Or run the latest version directly
-./Taipan_2020_v1.2.7.pl
+./Taipan_2020_v2.1.1.pl
 
 # Or with perl directly
-perl Taipan_2020_v1.2.7.pl
+perl Taipan_2020_v2.1.1.pl
 ```
 
 **Prerequisites:**
@@ -30,7 +30,7 @@ perl Taipan_2020_v1.2.7.pl
 
 **IMPORTANT: Always follow this workflow when making code changes:**
 
-1. Make code changes to current version (currently v1.2.7)
+1. Make code changes to current version (currently v2.1.1)
 2. **Run syntax check:** `perl -c Taipan_2020_vX.X.X.pl`
 3. Fix any syntax errors
 4. Copy to new version: `cp Taipan_2020_vX.X.X.pl Taipan_2020_vX.X.Y.pl`
@@ -47,13 +47,16 @@ The repository includes test scripts for specific features:
 - `test_usury.pl`: Tests the 20% maximum usury rate (interest cap)
 - `test_multiport_borrowing.pl`: Tests debt limits across multiple ports
 - `test_transaction_maximums.pl`: Tests transaction limits and validation
+- `test_storm_mechanics.pl`: Tests storm probability, sinking, and blown off course
+- `test_robberies.pl`: Tests cash robbery, bodyguard massacre, and Elder Wu mechanics
+- `test_li_yuen.pl`: Tests Li Yuen encounter probability and combat mechanics
 
-Run these after making changes to financial systems.
+Run these after making changes to their respective systems.
 
 ## Architecture Overview
 
 ### Single-File Monolith Design
-The entire game is in `Taipan_2020_v1.2.7.pl` (~2,900+ lines). This is intentional - it's a self-contained terminal game without external dependencies beyond Perl modules. Multiple versions exist in the repository for version tracking.
+The entire game is in `Taipan_2020_v2.1.1.pl` (~3,100+ lines). This is intentional - it's a self-contained terminal game without external dependencies beyond Perl modules. Multiple versions exist in the repository for version tracking.
 
 ### Core Data Structures
 
@@ -216,6 +219,34 @@ Based on original APPLE II BASIC lines 2501, 1460, 1220, 1330:
 - Interest rates increase with each loan (predatory lending)
 - Example: Loan #1: 75-200% interest, Loan #3: 150-400% interest
 
+### Li Yuen the Pirate Lord Mechanics
+Based on original APPLE II BASIC lines 3110-3230:
+
+**Li Yuen Encounters (Line 3210):**
+- Probability: `FN R(4 + 8 * LI)` where LI is tribute flag
+- No tribute (LI=0): 25% chance (1-in-4) of Li Yuen encounter
+- Paid tribute (LI=1): 8.3% chance (1-in-12) of Li Yuen encounter
+- Only triggers during pirate encounters (1-in-9 base chance when sailing)
+
+**Li Yuen Combat (Line 3230):**
+- Fleet size: `SN = FN R(SC / 5 + GN) + 5` (larger than normal pirates)
+- Damage multiplier: `F1 = 2` (Li Yuen does DOUBLE damage)
+- Booty: 2x normal pirate booty if defeated
+- Attack guaranteed if no tribute paid
+- "Good joss!!" pass through if tribute paid (Line 3225)
+
+**Player State:**
+- `li_yuen_tribute`: Flag indicating tribute payment status (0 or 1)
+- Li Yuen flag is set when player pays tribute to avoid future attacks
+- Tribute reduces encounter probability from 25% to 8.3%
+- Tribute provides guaranteed safe passage if encountered
+
+**Implementation Notes:**
+- Li Yuen check happens after storm check in `random_event()`
+- F1 multiplier must be reset to 1 after Li Yuen combat for normal pirates
+- Booty calculation uses F1=2 to double the reward for defeating Li Yuen
+- Fleet size averages ~65 ships with SC=400, GN=40 (vs ~25 for normal pirates)
+
 ## Debugging
 
 Debug logging enabled by default:
@@ -299,7 +330,30 @@ perl "$TAIPAN_SCRIPT"
 
 ## Version History
 
-- **v1.2.9**: Robbery & Elder Brother Wu mechanics (latest)
+- **v2.1.1**: Quality of Life Polish (latest)
+  - Real-time seaworthiness display during combat damage (Fight and Run)
+  - Real-time status updates after storm damage (partial loss and survival)
+  - Smart retirement dialog: one-time offer with `retire_offered` flag
+  - "The seas await, Taipan! We sail on!" confirmation when declining retirement
+  - Backward compatibility defaults for all new player fields (retire_offered, etc.)
+  - Added `$cui->draw(1)` after `update_status()` in combat for immediate visual feedback
+- **v2.1.0**: Major UI/UX & Combat Overhaul
+  - Added ship and gun costs to Hold window (dynamic pricing display)
+  - Implemented enemy attack phase when Run fails in combat (damage + seaworthiness checks)
+  - Rebalanced commodity markets: Arms ¥500-2500 (was ~125-375), Silk ¥230-510 (was ~180-420)
+  - Fixed combat dialog sequence: Added "Pirates sighted off the port bow!" before combat screen
+  - Enhanced update_hold() function with real-time purchase cost calculations
+  - Improved tactical depth: Failed escapes now have consequences
+  - Better UX: Players always know ship/gun costs before purchasing
+- **v1.3.0**: Li Yuen the Pirate Lord
+  - Implemented Li Yuen encounters from APPLE II BASIC (lines 3110-3230)
+  - Tribute system: 25% encounter rate without tribute, 8.3% with tribute
+  - "Good joss!!" safe passage when tribute is paid
+  - Larger fleet size: SC/5 + GN + 5 ships (avg ~65 vs ~25 normal pirates)
+  - Double damage multiplier (F1=2) and 2x booty for Li Yuen combat
+  - Added li_yuen_tribute flag to player state
+  - Added comprehensive test harness (test_li_yuen.pl) with 1000 iterations
+- **v1.2.9**: Robbery & Elder Brother Wu mechanics
   - Implemented cash robbery (BASIC line 2501): 5% chance when cash > ¥25,000
   - Implemented bodyguard massacre (BASIC line 1460): 20% chance when debt > ¥20,000
   - Added Elder Brother Wu escort system (BASIC line 1220): Wu sends 50-150 braves
@@ -336,4 +390,4 @@ perl "$TAIPAN_SCRIPT"
 - **v1.0.0**: First full release with all core features
 - **v0.1.1**: Early alpha version
 
-**Current Active Version:** v1.2.7 (see `launch_taipan.sh` for currently configured version)
+**Current Active Version:** v2.1.1 (see `launch_taipan.sh` for currently configured version)

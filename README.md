@@ -4,11 +4,11 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Perl](https://img.shields.io/badge/Perl-5-purple.svg)](https://www.perl.org/)
 [![Curses::UI](https://img.shields.io/badge/Curses%3A%3AUI-Terminal-green.svg)](https://metacpan.org/pod/Curses::UI)
-[![Version](https://img.shields.io/badge/version-1.2.9-brightgreen.svg)](https://github.com/michaellavery-grp/taipan_cursed)
+[![Version](https://img.shields.io/badge/version-2.1.1-brightgreen.svg)](https://github.com/michaellavery-grp/taipan_cursed)
 
 > *"Taipan Cursed, sailing as the Dutch East India Company, preserves its legacy with JSON ledgers and zen koans, crafted with Grok's celestial guidance from xAI."*
 
-**Latest Release: v1.2.9** - Now with storm mechanics, robbery events, and Elder Brother Wu's predatory lending! The streets are dangerous, Taipan!
+**Latest Release: v2.1.1** - Quality of life updates! Real-time seaworthiness display during combat/storms, one-time retirement dialog with "sail on" option!
 
 ## 🌊 What is Taipan Cursed?
 
@@ -22,28 +22,61 @@ Set in the treacherous waters of 1860s East Asia, you'll command a merchant flee
 
 *Click to watch the interactive terminal demo on asciinema.org*
 
-## 🆕 What's New in v1.2.9?
+## 🆕 What's New in v2.1.1?
 
-**Recent Major Improvements:**
-- 🌊 **Storm Mechanics** (v1.2.8): Authentic APPLE II BASIC storm system - 10% chance per voyage!
-  - Ship sinking danger based on damage (30-70% fleet loss)
-  - Blown off course to random ports (33% of storms)
-  - Mother Nature is a cruel mistress!
-- 🔫 **Robbery Events** (v1.2.9): The streets are dangerous, Taipan!
-  - Cash robbery when carrying > ¥25,000 (5% chance, steal up to 71%)
-  - Bodyguard massacre when debt > ¥20,000 (20% chance, lose ALL cash!)
-  - Elder Brother Wu escort system (50-150 braves protect you)
-  - Predatory emergency loans (75-400% interest!)
-- ✨ **Unified UX Pattern** (v1.2.5): All buying/selling actions use "Press Enter for max"
-- 🔧 **Critical Bug Fix** (v1.2.6): Fixed port_debt synchronization bug
-- 💰 **Smart Debt Payment**: Auto-withdraws from bank when in Hong Kong
+**QUALITY OF LIFE POLISH:**
+- 🩺 **Real-Time Seaworthiness Display**: Status updates immediately during combat damage!
+  - See hull integrity % drop in real-time when enemy ships fire
+  - Updates instantly when Run fails and enemy attacks
+  - Storm damage shows immediately after partial ship loss
+  - No more waiting until end of combat to see your ship status
+- 🎯 **Smart Retirement Dialog**: Never be nagged about retiring again!
+  - First time: Shows full retirement stats and asks if you want to retire
+  - Decline once: Sets `retire_offered` flag, shows "The seas await, Taipan! We sail on!"
+  - Future attempts: Silently blocked - you made your choice!
+  - Flag persists in save files for consistency
+- 🔧 **Backward Compatibility**: Old saves auto-upgrade with new fields
+  - `retire_offered`, `li_yuen_tribute`, `bodyguards`, etc. default gracefully
+  - No save file breakage from new features
+
+**Previous Major Updates (v2.1.0):**
+
+**MAJOR UI/UX & COMBAT OVERHAUL:**
+- 💰 **Ship & Gun Costs in Hold Window**: Always know what your next purchase will cost!
+  - Dynamic ship pricing displayed (¥10k base + ¥1k per 2 guns over 20)
+  - Gun costs shown (¥500 × number of ships)
+  - Real-time visibility for strategic planning
+- ⚔️ **Enemy Attack on Failed Run**: Running away now has consequences!
+  - Failed escape attempts trigger enemy attack phase
+  - Uses authentic damage formula from original BASIC
+  - Can sink your fleet if seaworthiness is critical
+  - Adds tactical depth to Run vs Fight decisions
+- 📈 **Rebalanced Commodity Markets**:
+  - **Arms**: Now range ¥500-2500 (was ~125-375) - High-stakes weapons trade!
+  - **Silk**: Now range ¥230-510 (was ~180-420) - Tighter luxury margins
+  - More realistic historical pricing for 1860s warfare boom
+- 🎭 **Improved Combat Flow**: Fixed pirate encounter sequence
+  - Now shows "Pirates sighted off the port bow!" BEFORE combat screen
+  - Better narrative flow: Sighting → Screen → Attack → Prompt
+  - More immersive and less jarring for players
+
+**Previous Major Features (v1.3.0 & Earlier):**
+- 🏴‍☠️ **Li Yuen the Pirate Lord** (v1.3.0): Legendary pirate encounters!
+  - Tribute system (25% encounter without, 8.3% with tribute)
+  - "Good joss!" safe passage when tribute paid
+  - Larger fleets (avg ~65 ships vs ~25 normal pirates)
+  - Double damage (F1=2) and 2x booty rewards
+- 🌊 **Storm Mechanics** (v1.2.8): 10% chance per voyage, damage-based sinking
+- 🔫 **Robbery Events** (v1.2.9): Cash theft, bodyguard massacres, Elder Wu loans
+- ✨ **Unified UX** (v1.2.5): "Press Enter for max" pattern everywhere
+- 💰 **Smart Banking**: Auto-withdraw from bank when paying debt in Hong Kong
 
 **For the Technical Crowd:**
-- Original BASIC formulas preserved (lines 2501, 1460, 1220, 1330, 3310-3340)
-- Comprehensive test harnesses (1,000 iteration validation)
-- New player state: bodyguards, bad_loan_count, wu_escort
-- Multi-port debt distribution algorithm prevents desync
-- Location-aware financial operations
+- Original APPLE II BASIC formulas preserved throughout
+- Test harnesses with 1,000 iteration validation (test_li_yuen.pl, test_storm_mechanics.pl, test_robberies.pl)
+- Player state tracking: li_yuen_tribute, bodyguards, bad_loan_count, wu_escort
+- Multi-port debt distribution algorithm
+- Dynamic UI updates in update_hold() function
 
 ## ⚡ Why Download This Now?
 
@@ -54,7 +87,7 @@ Set in the treacherous waters of 1860s East Asia, you'll command a merchant flee
 - **Classic Combat**: Battle pirate fleets with the original risk-vs-reward mechanics
 
 ### For Coders & Grey-Haired Linux Heads:
-- **3,000+ Lines of Production Perl**: Well-commented, battle-tested code demonstrating advanced Curses::UI techniques
+- **3,100+ Lines of Production Perl**: Well-commented, battle-tested code demonstrating advanced Curses::UI techniques
 - **Complex Systems**: Study real-world game systems including:
   - **Storm mechanics** - APPLE II BASIC authentic formulas (damage-based sinking)
   - **Robbery system** - Probability-based events with bodyguard tracking
@@ -83,17 +116,20 @@ Set in the treacherous waters of 1860s East Asia, you'll command a merchant flee
 ## 🎮 Core Features
 
 ### 💰 Advanced Trading System
-- **Four Commodities**: Opium, Arms, Silk, and General Cargo
+- **Four Commodities**: Opium, Arms (¥500-2500), Silk (¥230-510), and General Cargo
 - **Dynamic Pricing**: Prices evolve based on trends, momentum, and volatility
 - **Hot Deals Tracker**: Real-time opium price comparison across all seven ports
 - **Market Intelligence**: See highest and lowest prices at a glance
+- **Hold Window Pricing**: See ship (¥10k+) and gun costs (¥500×ships) in real-time
 
 ### 🏴‍☠️ Pirate Combat
 - **Random Encounters**: 1-in-9 chance of pirate attack while sailing
+- **Li Yuen the Pirate Lord**: Legendary encounters with tribute system and double damage
 - **ASCII Naval Battles**: Lorcha-class warships rendered in beautiful ASCII
-- **Strategic Choices**: Fight, Run, or Throw Cargo to escape
+- **Strategic Choices**: Fight, Run (with attack penalty!), or Throw Cargo to escape
 - **Booty System**: Defeat pirates to earn bonus cash based on fleet size and game time
 - **Damage Model**: Ships take damage in combat; repair costs scale with time
+- **Immersive Flow**: "Pirates sighted off the port bow!" → Combat screen → Fight/Run/Throw
 
 ### 🏦 Banking & Finance
 - **Hong Kong & Shanghai Banking Corporation**: Period-accurate banking institution

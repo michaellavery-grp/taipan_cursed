@@ -137,8 +137,8 @@ foreach my $file (@filenames) {
 
 our %goods = (
     opium => { base_price => 5000, volatility => 0.8 },
-    arms => { base_price => 250, volatility => 0.5 },
-    silk => { base_price => 300, volatility => 0.4 },
+    arms => { base_price => 1500, volatility => 0.667 },  # Range: 500-2500
+    silk => { base_price => 370, volatility => 0.378 },   # Range: 230-510
     general => { base_price => 50, volatility => 0.3 },
 );
 
@@ -934,6 +934,35 @@ sub fight_run_throw {
         } else {
             $cui->dialog("Couldn't lose 'em.");
             sleep(1);
+
+            # ENEMY ATTACK PHASE when Run fails!
+            # Original formula: DM = DM + FN R(ED * I * F1) + I / 2
+            # Where: ED = damage severity, I = num_ships, F1 = damage multiplier
+            my $ed_scaled = $ed / 20.0;
+            my $damage_taken = int(rand($ed_scaled * $num_ships * $f1)) + int($num_ships / 2);
+            $player{damage} += $damage_taken;
+            debug_log("Run failed - Enemy attack: took $damage_taken damage, total damage now=$player{damage}");
+
+            # Check seaworthiness after taking damage
+            my $seaworthy = calculate_seaworthiness();
+            debug_log("Seaworthiness after run damage: ${seaworthy}%");
+
+            # Show damage message
+            if ($seaworthy <= 0) {
+                $cui->dialog("They're firing on us! We're taking on water, Taipan! The ship is sinking!");
+                sleep(2);
+                $cui->dialog("Your fleet has been lost at sea...");
+                sleep(2);
+                exit(0);  # Game over!
+            } elsif ($seaworthy < 30) {
+                $cui->dialog("They hit us hard! Took $damage_taken damage! Hull integrity: ${seaworthy}% - Critical!");
+            } elsif ($seaworthy < 50) {
+                $cui->dialog("They got some shots off! Took $damage_taken damage! Hull integrity: ${seaworthy}%");
+            } elsif ($damage_taken > 0) {
+                $cui->dialog("Enemy fire hit us as we ran! Took $damage_taken damage (Seaworthy: ${seaworthy}%)");
+            }
+            sleep(1);
+
             if ($num_ships > 2 && rand() * 5 < 1) {
                 my $lost = int(rand($num_ships / 2) + 1);
                 $num_ships -= $lost;
@@ -1554,6 +1583,17 @@ sub update_hold {
     my $wh_used = $wh->{opium} + $wh->{arms} + $wh->{silk} + $wh->{general};
     my $wh_free = $wh->{capacity} - $wh_used;
 
+    # Calculate ship cost (base ¥10,000 + ¥1,000 per 2 guns over 20)
+    my $ship_cost = 10000;
+    if ($player{guns} > 20) {
+        my $guns_over_20 = $player{guns} - 20;
+        my $additional_cost = int($guns_over_20 / 2) * 1000;
+        $ship_cost += $additional_cost;
+    }
+
+    # Calculate gun cost (¥500 per gun × number of ships)
+    my $gun_cost = 500 * $player{ships};
+
     # Format hold text for left column (narrower)
     my $hold_text = "CARGO:\n";
     $hold_text .= "Opium: $player{cargo}{opium}\n";
@@ -1566,7 +1606,9 @@ sub update_hold {
     $hold_text .= "Arms: $wh->{arms}\n";
     $hold_text .= "Silk: $wh->{silk}\n";
     $hold_text .= "General: $wh->{general}\n";
-    $hold_text .= "Free: $wh_free";
+    $hold_text .= "Free: $wh_free\n";
+    $hold_text .= "\nSHIPS: ¥$ship_cost ea\n";
+    $hold_text .= "GUNS: ¥$gun_cost ea";
 
     $hold_label->text($hold_text);
 
@@ -1895,6 +1937,10 @@ sub random_event {
     $orders = 0;  # Reset orders
     $ok = 3; # Reset escape chance factor
     $f1 = 1;  # Normal pirates, normal damage
+
+    # Announce pirate sighting BEFORE combat starts
+    $cui->dialog("Taipan!! Pirates sighted off the port bow!\n\n$num_ships " . ($num_ships == 1 ? "ship" : "ships") . " approaching fast!");
+    sleep(1);
 
     # Initialize combat display
     init_combat();

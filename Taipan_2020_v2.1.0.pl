@@ -69,6 +69,7 @@ our %player = (
     bad_loan_count => 0,  # BL% - Counter for Elder Brother Wu emergency loans (increases interest)
     wu_escort => 0,  # WN flag - Whether Elder Brother Wu has sent an escort
     li_yuen_tribute => 0,  # LI flag - Whether you've paid tribute to Li Yuen (0=no, 1=yes)
+    retire_offered => 0,  # Whether retirement has been offered and declined this game
 );
 
 our @ports = ('Hong Kong', 'Shanghai', 'Nagasaki', 'Saigon', 'Manila', 'Batavia', 'Singapore');
@@ -137,8 +138,8 @@ foreach my $file (@filenames) {
 
 our %goods = (
     opium => { base_price => 5000, volatility => 0.8 },
-    arms => { base_price => 250, volatility => 0.5 },
-    silk => { base_price => 300, volatility => 0.4 },
+    arms => { base_price => 1500, volatility => 0.667 },  # Range: 500-2500
+    silk => { base_price => 370, volatility => 0.378 },   # Range: 230-510
     general => { base_price => 50, volatility => 0.3 },
 );
 
@@ -454,6 +455,13 @@ sub load_game {
             debug_log("Loaded old format save: only player data restored");
             # warehouses and port_debt will keep their default values
         }
+
+        # Ensure backward compatibility for new fields (set defaults if not present in old saves)
+        $player{retire_offered} //= 0;  # Default to 0 if not present in old save
+        $player{li_yuen_tribute} //= 0;
+        $player{bodyguards} //= 5;
+        $player{bad_loan_count} //= 0;
+        $player{wu_escort} //= 0;
 
         # Regenerate prices after loading (prices are not saved, only player data)
         initialize_trends();
@@ -892,6 +900,10 @@ sub fight_run_throw {
                 my $seaworthy = calculate_seaworthiness();
                 debug_log("Seaworthiness after damage: ${seaworthy}%");
 
+                # Update status display in real-time to show damage
+                update_status();
+                $cui->draw(1);  # Force redraw after status update
+
                 # Always show damage message if we took any damage
                 if ($seaworthy <= 0) {
                     $cui->dialog("We're taking on water, Taipan! The ship is sinking!");
@@ -934,6 +946,39 @@ sub fight_run_throw {
         } else {
             $cui->dialog("Couldn't lose 'em.");
             sleep(1);
+
+            # ENEMY ATTACK PHASE when Run fails!
+            # Original formula: DM = DM + FN R(ED * I * F1) + I / 2
+            # Where: ED = damage severity, I = num_ships, F1 = damage multiplier
+            my $ed_scaled = $ed / 20.0;
+            my $damage_taken = int(rand($ed_scaled * $num_ships * $f1)) + int($num_ships / 2);
+            $player{damage} += $damage_taken;
+            debug_log("Run failed - Enemy attack: took $damage_taken damage, total damage now=$player{damage}");
+
+            # Check seaworthiness after taking damage
+            my $seaworthy = calculate_seaworthiness();
+            debug_log("Seaworthiness after run damage: ${seaworthy}%");
+
+            # Update status display in real-time to show damage
+            update_status();
+            $cui->draw(1);  # Force redraw after status update
+
+            # Show damage message
+            if ($seaworthy <= 0) {
+                $cui->dialog("They're firing on us! We're taking on water, Taipan! The ship is sinking!");
+                sleep(2);
+                $cui->dialog("Your fleet has been lost at sea...");
+                sleep(2);
+                exit(0);  # Game over!
+            } elsif ($seaworthy < 30) {
+                $cui->dialog("They hit us hard! Took $damage_taken damage! Hull integrity: ${seaworthy}% - Critical!");
+            } elsif ($seaworthy < 50) {
+                $cui->dialog("They got some shots off! Took $damage_taken damage! Hull integrity: ${seaworthy}%");
+            } elsif ($damage_taken > 0) {
+                $cui->dialog("Enemy fire hit us as we ran! Took $damage_taken damage (Seaworthy: ${seaworthy}%)");
+            }
+            sleep(1);
+
             if ($num_ships > 2 && rand() * 5 < 1) {
                 my $lost = int(rand($num_ships / 2) + 1);
                 $num_ships -= $lost;
@@ -1554,6 +1599,17 @@ sub update_hold {
     my $wh_used = $wh->{opium} + $wh->{arms} + $wh->{silk} + $wh->{general};
     my $wh_free = $wh->{capacity} - $wh_used;
 
+    # Calculate ship cost (base ¥10,000 + ¥1,000 per 2 guns over 20)
+    my $ship_cost = 10000;
+    if ($player{guns} > 20) {
+        my $guns_over_20 = $player{guns} - 20;
+        my $additional_cost = int($guns_over_20 / 2) * 1000;
+        $ship_cost += $additional_cost;
+    }
+
+    # Calculate gun cost (¥500 per gun × number of ships)
+    my $gun_cost = 500 * $player{ships};
+
     # Format hold text for left column (narrower)
     my $hold_text = "CARGO:\n";
     $hold_text .= "Opium: $player{cargo}{opium}\n";
@@ -1566,7 +1622,9 @@ sub update_hold {
     $hold_text .= "Arms: $wh->{arms}\n";
     $hold_text .= "Silk: $wh->{silk}\n";
     $hold_text .= "General: $wh->{general}\n";
-    $hold_text .= "Free: $wh_free";
+    $hold_text .= "Free: $wh_free\n";
+    $hold_text .= "\nSHIPS: ¥$ship_cost ea\n";
+    $hold_text .= "GUNS: ¥$gun_cost ea";
 
     $hold_label->text($hold_text);
 
@@ -1761,6 +1819,9 @@ sub random_event {
                     my $total_cargo_lost = $cargo_lost->{opium} + $cargo_lost->{arms} + $cargo_lost->{silk} + $cargo_lost->{general};
                     debug_log("STORM: Lost $ships_lost ships and $total_cargo_lost units of cargo. Fleet reduced to $player{ships} ships.");
 
+                    # Update status display to show storm damage
+                    update_status();
+
                     $cui->dialog("We're going down, Taipan!!\n\n$ships_lost of your ships are lost to the waves!\nCargo lost: $total_cargo_lost units\n\nYou have $player{ships} ships remaining.\nSevere storm damage sustained.");
                     sleep(2);
                 }
@@ -1768,6 +1829,8 @@ sub random_event {
         }
 
         # Survived the storm!
+        # Update status to show any damage from storm
+        update_status();
         $cui->dialog("We made it!!\n\nThe storm passes...\nYour ships are battered but afloat.");
 
         # 1-in-3 chance of being blown off course (FN R(3))
@@ -1895,6 +1958,10 @@ sub random_event {
     $orders = 0;  # Reset orders
     $ok = 3; # Reset escape chance factor
     $f1 = 1;  # Normal pirates, normal damage
+
+    # Announce pirate sighting BEFORE combat starts
+    $cui->dialog("Taipan!! Pirates sighted off the port bow!\n\n$num_ships " . ($num_ships == 1 ? "ship" : "ships") . " approaching fast!");
+    sleep(1);
 
     # Initialize combat display
     init_combat();
@@ -2418,6 +2485,12 @@ sub sell_good {
 }
 
 sub retire {
+    # Check if retirement has already been offered and declined this game
+    if ($player{retire_offered}) {
+        debug_log("Retirement already offered and declined this game, skipping");
+        return;
+    }
+
     # Calculate net worth: CA + BA - DW
     my $net_worth = $player{cash} + $player{bank_balance} - $player{debt};
 
@@ -2486,6 +2559,12 @@ sub retire {
         $cui->dialog("Fair winds and following seas, $player{firm_name}!");
         sleep(1);
         exit(0);
+    } else {
+        # Player chose to continue - set flag to never ask again this game
+        $player{retire_offered} = 1;
+        debug_log("Retirement declined, setting retire_offered flag to prevent future prompts");
+        $cui->dialog("The seas await, Taipan! We sail on!");
+        sleep(1);
     }
 }
 
