@@ -1,31 +1,30 @@
-Mon Nov 17 20:44:31 2025: === TAIPAN STARTED ===
-Mon Nov 17 20:44:31 2025: Splash screen focused
-Mon Nov 17 20:44:31 2025: Splash binding set, starting mainloop
-Mon Nov 17 20:44:33 2025: Splash key pressed - calling clear_splash_screen
-Mon Nov 17 20:44:33 2025: clear_splash_screen called
-Mon Nov 17 20:44:33 2025: About to delete splash label
-Mon Nov 17 20:44:33 2025: Splash label deleted
-Mon Nov 17 20:44:33 2025: Instructions displayed
-Mon Nov 17 20:44:33 2025: Waiting for game choice (N or L)
-Mon Nov 17 20:44:35 2025: User entered game choice: L
-Mon Nov 17 20:44:35 2025: User chose LOAD GAME
-Mon Nov 17 20:44:39 2025: Loaded new format save: player, warehouses, port_debt restored
-Mon Nov 17 20:44:39 2025: Returned from load_game, starting main_loop
-Mon Nov 17 20:44:39 2025: === MAIN_LOOP START ===
-Mon Nov 17 20:44:39 2025: main_loop: Drawing menus
-Mon Nov 17 20:44:39 2025: main_loop: Menus drawn, updating status
-Mon Nov 17 20:44:39 2025: main_loop: Drawing UI and setting focus
-Mon Nov 17 20:44:39 2025: === MAIN_LOOP COMPLETE ===
-Mon Nov 17 20:44:55 2025: Voyage complete to Batavia, total voyages: 1
-Mon Nov 17 20:45:08 2025: Borrowed ¥50000 in Batavia. Port debt: ¥50000, Total debt: ¥50000
-Mon Nov 17 20:45:29 2025: Monthly debt interest (10%): debt increased from 50000 to 55000 (+5000)
-Mon Nov 17 20:45:29 2025: STORM EVENT: Storm encountered during voyage!
-Mon Nov 17 20:45:30 2025: Voyage complete to Saigon, total voyages: 2
-Mon Nov 17 20:47:30 2025: Voyage complete to Batavia, total voyages: 3
-Mon Nov 17 20:47:47 2025: Voyage complete to Saigon, total voyages: 4
-Mon Nov 17 20:48:13 2025: Monthly debt interest (10%): debt increased from 55000 to 60500 (+5500)
-Mon Nov 17 20:48:13 2025: Voyage complete to Hong Kong, total voyages: 5
-Mon Nov 17 20:48:26 2025: Payment overflow of ¥60500 needs distribution to other ports
-Mon Nov 17 20:48:26 2025: Distributed ¥50000 to Batavia. Port debt now ¥0
-Mon Nov 17 20:48:26 2025: All debt paid - zeroed out all port_debt values
-Mon Nov 17 20:48:26 2025: Payment complete. Total debt now ¥0
+Thu Nov 20 11:16:00 2025: === TAIPAN STARTED ===
+Thu Nov 20 11:16:00 2025: Splash screen focused
+Thu Nov 20 11:16:00 2025: Splash binding set, starting mainloop
+Thu Nov 20 11:16:01 2025: Splash key pressed - calling clear_splash_screen
+Thu Nov 20 11:16:01 2025: clear_splash_screen called
+Thu Nov 20 11:16:01 2025: About to delete splash label
+Thu Nov 20 11:16:01 2025: Splash label deleted
+Thu Nov 20 11:16:01 2025: Instructions displayed
+Thu Nov 20 11:16:01 2025: Waiting for game choice (N or L)
+Thu Nov 20 11:16:04 2025: User entered game choice: L
+Thu Nov 20 11:16:04 2025: User chose LOAD GAME
+Thu Nov 20 11:16:07 2025: Loaded new format save: player, warehouses, port_debt restored
+Thu Nov 20 11:16:08 2025: Returned from load_game, starting main_loop
+Thu Nov 20 11:16:08 2025: === MAIN_LOOP START ===
+Thu Nov 20 11:16:08 2025: main_loop: Drawing menus
+Thu Nov 20 11:16:08 2025: main_loop: Menus drawn, updating status
+Thu Nov 20 11:16:08 2025: main_loop: Drawing UI and setting focus
+Thu Nov 20 11:16:08 2025: === MAIN_LOOP COMPLETE ===
+Thu Nov 20 11:16:51 2025: Voyage complete to Nagasaki, total voyages: 6
+Thu Nov 20 11:17:28 2025: Voyage complete to Manila, total voyages: 7
+Thu Nov 20 11:18:07 2025: Voyage complete to Saigon, total voyages: 8
+Thu Nov 20 11:19:50 2025: STORM EVENT: Storm encountered during voyage!
+Thu Nov 20 11:19:51 2025: STORM: Ship in danger of sinking!
+Thu Nov 20 11:19:52 2025: STORM: Damage factor = 0 (damage=0, capacity=60)
+Thu Nov 20 11:19:55 2025: STORM: Blown off course from Manila to Saigon
+Thu Nov 20 11:19:57 2025: Voyage complete to Saigon, total voyages: 9
+Thu Nov 20 11:21:09 2025: STORM EVENT: Storm encountered during voyage!
+Thu Nov 20 11:21:11 2025: STORM: Blown off course from Manila to Hong Kong
+Thu Nov 20 11:21:11 2025: Voyage complete to Hong Kong, total voyages: 10
+Thu Nov 20 11:21:35 2025: Voyage complete to Saigon, total voyages: 11
