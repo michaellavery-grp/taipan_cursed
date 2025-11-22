@@ -100,6 +100,7 @@ class GameModel: ObservableObject {
     @Published var cash: Double = 500.0
     @Published var bank: Double = 0.0
     @Published var debt: Double = 0.0
+    @Published var portDebt: [String: Double] = [:]  // Per-port debt tracking (¥50k max per port)
     @Published var ships: Int = 1
     @Published var guns: Int = 1  // Player starts with 1 gun per ship
     @Published var shipDamage: Double = 0.0  // 0.0 to 1.0
@@ -331,9 +332,21 @@ class GameModel: ObservableObject {
     }
     
     func borrow(_ amount: Double) -> Bool {
+        let maxDebtPerPort = 50000.0
+        let portDebtAmount = portDebt[currentPort] ?? 0.0
+        let availableCredit = maxDebtPerPort - portDebtAmount
+
+        // Check if borrowing would exceed port limit
+        if amount > availableCredit {
+            return false
+        }
+
+        // Track debt both globally (for interest) and per-port (for borrowing limits)
         debt += amount
         cash += amount
-        addLog("Borrowed ¥\(Int(amount)) at 10% monthly interest")
+        portDebt[currentPort] = portDebtAmount + amount
+
+        addLog("Borrowed ¥\(Int(amount)) at 10% monthly interest in \(currentPort)")
         return true
     }
     
@@ -341,6 +354,32 @@ class GameModel: ObservableObject {
         if amount <= cash && amount <= debt {
             cash -= amount
             debt -= amount
+
+            // Pay down current port's debt first, then distribute to other ports
+            var remainingPayment = amount
+            let currentPortDebt = portDebt[currentPort] ?? 0.0
+
+            if currentPortDebt > 0 {
+                let portPayment = min(remainingPayment, currentPortDebt)
+                portDebt[currentPort] = currentPortDebt - portPayment
+                remainingPayment -= portPayment
+            }
+
+            // Distribute remaining payment across other ports with debt
+            if remainingPayment > 0 {
+                for (port, portDebtAmount) in portDebt where portDebtAmount > 0 && port != currentPort {
+                    let portPayment = min(remainingPayment, portDebtAmount)
+                    portDebt[port] = portDebtAmount - portPayment
+                    remainingPayment -= portPayment
+                    if remainingPayment <= 0 { break }
+                }
+            }
+
+            // Clean up zero debt entries
+            if debt <= 0 {
+                portDebt.removeAll()
+            }
+
             addLog("Repaid ¥\(Int(amount)) debt")
             return true
         }
@@ -705,6 +744,7 @@ class GameModel: ObservableObject {
             cash: cash,
             bank: bank,
             debt: debt,
+            portDebt: portDebt,
             ships: ships,
             guns: guns,
             shipDamage: shipDamage,
@@ -740,6 +780,7 @@ class GameModel: ObservableObject {
         self.cash = saveData.cash
         self.bank = saveData.bank
         self.debt = saveData.debt
+        self.portDebt = saveData.portDebt ?? [:]  // Backward compatibility - defaults to empty
         self.ships = saveData.ships
         self.guns = saveData.guns
         self.shipDamage = saveData.shipDamage
@@ -749,7 +790,7 @@ class GameModel: ObservableObject {
         self.commodities = saveData.commodities
         self.gameDate = saveData.gameDate
         self.gameLog = saveData.gameLog
-        
+
         addLog("Game loaded")
     }
     
@@ -855,6 +896,7 @@ struct SaveData: Codable {
     let cash: Double
     let bank: Double
     let debt: Double
+    let portDebt: [String: Double]?  // Optional for backward compatibility
     let ships: Int
     let guns: Int
     let shipDamage: Double

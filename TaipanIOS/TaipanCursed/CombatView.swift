@@ -7,6 +7,8 @@ struct CombatView: View {
     @State private var showingBlast: Bool = false
     @State private var blastPositions: [Int] = []
     @State private var sinkingShips: [Int] = []
+    @State private var lorchaFlashColor: Color = .red
+    @State private var isFlashing: Bool = false
 
     enum AnimationState {
         case idle
@@ -198,7 +200,10 @@ struct CombatView: View {
             Text("\\_____/")
                 .font(.system(size: 10, design: .monospaced))
         }
-        .foregroundColor(.white)
+        .foregroundColor(isFlashing ? lorchaFlashColor : .white)
+        .onAppear {
+            startFlashing()
+        }
     }
 
     private var blastArt: some View {
@@ -245,6 +250,27 @@ struct CombatView: View {
         for (index, ship) in combat.pirateShips.enumerated() {
             if ship.sunk && !sinkingShips.contains(index) {
                 sinkingShips.append(index)
+            }
+        }
+    }
+
+    private func startFlashing() {
+        // Cycle through colors: red -> yellow -> orange -> red
+        let colors: [Color] = [.red, .yellow, .orange, Color(red: 1.0, green: 0.5, blue: 0.0)]
+        var colorIndex = 0
+
+        Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { timer in
+            if !combat.isActive {
+                timer.invalidate()
+                return
+            }
+
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isFlashing.toggle()
+                if isFlashing {
+                    lorchaFlashColor = colors[colorIndex]
+                    colorIndex = (colorIndex + 1) % colors.count
+                }
             }
         }
     }

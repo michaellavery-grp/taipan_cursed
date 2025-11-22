@@ -4,12 +4,32 @@
 
 TaipanIOS is a faithful iOS port of the classic 1982 Apple II game "Taipan!" - now with SwiftUI goodness and retro-greenscreen vibes on your iPhone.
 
+## 📸 Screenshots
+
+### Main Game Screen
+![Ship Menu](Taipan1.PNG)
+*Navigate the South China Sea - Track your cash, ships, and opium prices across ports*
+
+### Trading Interface
+![Trade Menu](Taipan2.PNG)
+*Buy and sell commodities - Arms at ¥1,443, Silk at ¥387. Watch those debt levels!*
+
+### Combat System
+![Pirate Battle](Taipan3.PNG)
+*Pirates attack! 18 enemy ships with lorcha ASCII art. Fight, Run, or Throw cargo!*
+
+### Victory!
+![Combat Victory](Taipan4.PNG)
+*Sunk 18 pirate ships! Earned ¥961 in booty. Retro greenscreen combat log.*
+
+---
+
 ## 🎮 What is Taipan?
 
 You're a merchant captain in the dangerous waters of the South China Sea. Trade opium, arms, silk, and general cargo across seven exotic ports. Manage your fleet, dodge pirates, juggle debts, and build your fortune from ¥20,000 to legendary wealth!
 
 **Features:**
-- ⚓ Trade across 7 Asian ports (Hong Kong, Shanghai, Manila, Bangkok, Singapore, Rangoon, Saigon)
+- ⚓ Trade across 7 Asian ports (Hong Kong, Shanghai, Nagasaki, Manila, Saigon, Singapore, Batavia)
 - 💰 Dynamic market system with realistic price trends
 - 🏴‍☠️ Naval combat with original 1982 formulas
 - 🏦 Multi-port banking and warehouse system
@@ -117,7 +137,7 @@ The game will launch on your iPhone! 🎉
 - **Bank Balance**: Check your bank account (Hong Kong/Shanghai only)
 - **Deposit**: Store cash safely in the bank
 - **Withdraw**: Get cash from your bank account
-- **Borrow**: Take loans (max ¥10,000 per port, 20% interest cap)
+- **Borrow**: Take loans (max ¥50,000 per port, 10% monthly interest)
 - **Pay Debt**: Pay down your debts
 
 **⚙️ System Menu**
@@ -153,9 +173,9 @@ The game will launch on your iPhone! 🎉
    - Each port has 10,000 capacity storage
 
 6. **Leverage Debt Wisely**:
-   - Borrow up to ¥10,000 at each port
-   - 20% maximum interest (usury cap)
-   - Pay off high-interest debt first
+   - Borrow up to ¥50,000 at each port (¥350,000 total across 7 ports!)
+   - 10% monthly compounding interest
+   - Pay off debt strategically to free up credit at each port
 
 ### Combat Tips
 

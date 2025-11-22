@@ -301,30 +301,105 @@ struct BuyGunsView: View {
 
 struct PortMapView: View {
     @ObservedObject var game: GameModel
-    
+    @State private var showASCIIMap = false
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Known World")
-                .font(.headline)
-            
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 20) {
-                    ForEach(game.ports) { port in
-                        PortMarker(port: port, isCurrent: port.name == game.currentPort, hasGoods: hasGoodsInWarehouse(port.name))
-                    }
+            HStack {
+                Text("Known World")
+                    .font(.headline)
+
+                Spacer()
+
+                Button(action: {
+                    showASCIIMap.toggle()
+                }) {
+                    Image(systemName: showASCIIMap ? "map.fill" : "map")
+                        .foregroundColor(.blue)
                 }
-                .padding()
             }
-            .background(Color(UIColor.secondarySystemBackground))
-            .cornerRadius(10)
+
+            if showASCIIMap {
+                // ASCII Map Display
+                ASCIIMapView(currentPort: game.currentPort)
+                    .padding()
+                    .background(Color.black)
+                    .cornerRadius(10)
+            } else {
+                // Port Markers (original view)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 20) {
+                        ForEach(game.ports) { port in
+                            PortMarker(port: port, isCurrent: port.name == game.currentPort, hasGoods: hasGoodsInWarehouse(port.name))
+                        }
+                    }
+                    .padding()
+                }
+                .background(Color(UIColor.secondarySystemBackground))
+                .cornerRadius(10)
+            }
         }
     }
-    
+
     func hasGoodsInWarehouse(_ portName: String) -> Bool {
         if let warehouse = game.warehouses[portName] {
             return warehouse.total > 0
         }
         return false
+    }
+}
+
+// MARK: - ASCII Map View
+
+struct ASCIIMapView: View {
+    let currentPort: String
+    @State private var mapContent: String = ""
+
+    var body: some View {
+        ScrollView([.horizontal, .vertical]) {
+            Text(mapContent)
+                .font(.system(size: 8, design: .monospaced))
+                .foregroundColor(.green)
+                .padding()
+        }
+        .frame(height: 200)
+        .onAppear {
+            loadMap()
+        }
+    }
+
+    func loadMap() {
+        // Map the current port to the appropriate map file number
+        let mapNumber: Int
+        switch currentPort {
+        case "Hong Kong":
+            mapNumber = 1
+        case "Shanghai":
+            mapNumber = 2
+        case "Nagasaki":
+            mapNumber = 3
+        case "Manila":
+            mapNumber = 4
+        case "Saigon":
+            mapNumber = 5
+        case "Singapore":
+            mapNumber = 6
+        case "Batavia":
+            mapNumber = 7
+        default:
+            mapNumber = 1
+        }
+
+        // Try to load the map file from the bundle
+        if let filepath = Bundle.main.path(forResource: "ascii_taipan_map\(mapNumber)", ofType: "txt") {
+            do {
+                mapContent = try String(contentsOfFile: filepath, encoding: .utf8)
+            } catch {
+                mapContent = "Map file not found. Please ensure ascii_taipan_map\(mapNumber).txt is added to the Xcode project."
+            }
+        } else {
+            mapContent = "Map file not found in bundle.\n\nTo add maps:\n1. In Xcode, select TaipanCursed folder\n2. Right-click → Add Files\n3. Select all ascii_taipan_map*.txt files\n4. Check 'Copy items if needed'\n5. Select TaipanCursed target"
+        }
     }
 }
 

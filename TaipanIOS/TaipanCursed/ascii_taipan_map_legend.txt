@@ -1,0 +1,8 @@
+ +-------------+
+ |   Legend    |
+ |=============|
+ |o Empty Port |
+ |* Full Port  |
+ |Q Home Port  |
+ |@ At Home    |
+ +-------------+

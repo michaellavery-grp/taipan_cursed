@@ -321,11 +321,11 @@ struct TransactionView: View {
                                 .font(.system(.title2, design: .monospaced))
                                 .fontWeight(.bold)
                         }
-                        
+
                         Slider(value: Binding(
                             get: { Double(amount) },
                             set: { amount = Int($0) }
-                        ), in: 1...Double(maxAmount), step: 1)
+                        ), in: 1...Double(max(1, maxAmount)), step: 1)
                         
                         HStack {
                             Button("1") { amount = 1 }

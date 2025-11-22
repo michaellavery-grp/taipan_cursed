@@ -278,7 +278,9 @@ struct MoneyTransactionView: View {
         case .withdraw:
             return game.bank
         case .borrow:
-            return 50000.0 // Reasonable borrowing limit
+            let maxDebtPerPort = 50000.0
+            let portDebtAmount = game.portDebt[game.currentPort] ?? 0.0
+            return max(0, maxDebtPerPort - portDebtAmount)
         case .repay:
             return min(game.cash, game.debt)
         }
@@ -303,12 +305,19 @@ struct MoneyTransactionView: View {
                         Text("Bank Balance: ¥\(Int(game.bank))")
                             .font(.headline)
                     case .borrow:
+                        let portDebtAmount = game.portDebt[game.currentPort] ?? 0.0
                         Text("Interest Rate: 10% Monthly (Compounding)")
                             .font(.headline)
                             .foregroundColor(.red)
-                        Text("⚠️ Debt grows quickly!")
+                        Text("Port Debt (\(game.currentPort)): ¥\(Int(portDebtAmount))")
                             .font(.subheadline)
                             .foregroundColor(.orange)
+                        Text("Available Credit: ¥\(Int(maxAmount))")
+                            .font(.subheadline)
+                            .foregroundColor(maxAmount > 0 ? .green : .red)
+                        Text("⚠️ Max ¥50,000 per port")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                     case .repay:
                         Text("Current Debt: ¥\(Int(game.debt))")
                             .font(.headline)
