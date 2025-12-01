@@ -126,7 +126,15 @@ class GameModel: ObservableObject {
         components.day = 1
         return Calendar.current.date(from: components) ?? Date()
     }()
-    
+
+    let gameStartDate: Date = {
+        var components = DateComponents()
+        components.year = 1860
+        components.month = 1
+        components.day = 1
+        return Calendar.current.date(from: components) ?? Date()
+    }()
+
     @Published var gameLog: [String] = []
     @Published var showingCombat: Bool = false
     @Published var combatState: CombatState?

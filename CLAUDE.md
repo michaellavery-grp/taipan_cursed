@@ -152,6 +152,13 @@ Four menus accessed via TAB/cursor keys:
 - `update_hold()`: Shows cargo + warehouse contents for current port
 - `update_hot_deals()`: Regenerates opium price comparison sidebar
 
+**Animated Splash Screen:**
+- `ShipAnimation::load_frames()`: Loads 60 ASCII frames from `ascii_ship_animation/ascii_frames/`
+- `ShipAnimation::get_frame($n)`: Returns frame array for display
+- Splash animation timer: Updates at 10 fps (0.1 second intervals)
+- Timer stopped in `clear_splash_screen()` when player starts game
+- Uses TextViewer widget for animation updates (supports text replacement)
+
 ## Important Implementation Details
 
 ### Ship Cost Calculation
@@ -330,7 +337,17 @@ perl "$TAIPAN_SCRIPT"
 
 ## Version History
 
-- **v2.1.1**: Quality of Life Polish (latest)
+- **v2.2.0**: Animated Pirate Ship Splash Screen (latest)
+  - Replaced static ASCII art splash with 60-frame Lottie animation converted to ASCII
+  - Animated pirate ship at 10 fps using Curses::UI timer system
+  - 100x40 character grid for high-detail rendering
+  - Animation module in `ascii_ship_animation/ship_animation.pl`
+  - 60 frames with title, ship animation, and "Press ANY key to start" footer
+  - Lottie source: https://lottie.host/9bb9c4f8-1182-11ee-83af-9f26319e45f0/JS4u5BmxEi.json
+  - Conversion pipeline: Lottie → Puppeteer (1200x1200 PNG) → jp2a (100x40 ASCII)
+  - Timer automatically stops when splash screen is dismissed
+  - Uses `File::Basename` for portable module path resolution
+- **v2.1.1**: Quality of Life Polish
   - Real-time seaworthiness display during combat damage (Fight and Run)
   - Real-time status updates after storm damage (partial loss and survival)
   - Smart retirement dialog: one-time offer with `retire_offered` flag

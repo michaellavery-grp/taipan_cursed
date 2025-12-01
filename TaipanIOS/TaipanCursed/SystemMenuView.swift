@@ -189,7 +189,7 @@ struct SystemMenuView: View {
                         HStack {
                             Text("Days Elapsed:")
                             Spacer()
-                            let days = Calendar.current.dateComponents([.day], from: Date(timeIntervalSince1970: 0), to: game.gameDate).day ?? 0
+                            let days = Calendar.current.dateComponents([.day], from: game.gameStartDate, to: game.gameDate).day ?? 0
                             Text("\(days)")
                                 .font(.system(.body, design: .monospaced))
                         }
@@ -215,11 +215,15 @@ struct SystemMenuView: View {
                         
                         Divider()
                         
-                        Text("Original game by Art Canfil (1979)")
+                        Text("Original game by Art Canfil (1982)")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        
-                        Text("iOS version 2024")
+
+                        Text("Perl Curses::UI version by Michael Lavery (2020-2025)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+
+                        Text("iOS version 2025 by Claude Code")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
