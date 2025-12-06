@@ -138,7 +138,8 @@ class GameModel: ObservableObject {
     @Published var gameLog: [String] = []
     @Published var showingCombat: Bool = false
     @Published var combatState: CombatState?
-    
+    @Published var stormAlert: String?  // Storm message to display
+
     var cargoCapacity: Int {
         ships * 60
     }
@@ -449,39 +450,132 @@ class GameModel: ObservableObject {
     func sailTo(_ destination: String) {
         // Apply warehouse spoilage for current port
         applyWarehouseSpoilage()
-        
+
         // Random travel time
         let travelDays = Int.random(in: 5...15)
         advanceTime(days: travelDays)
-        
+
         // Random pirate encounter (1 in 9 chance)
         if Double.random(in: 0...1) < (1.0 / 9.0) {
             encounterPirates()
         }
-        
+
+        // Random storm encounter (10% chance) - Based on Perl v1.2.8 lines 3310-3340
+        var finalDestination = destination
+        if Double.random(in: 0...1) < 0.1 {
+            finalDestination = handleStorm(intendedDestination: destination)
+        }
+
         // Update current port
-        currentPort = destination
-        if let index = ports.firstIndex(where: { $0.name == destination }) {
+        currentPort = finalDestination
+        if let index = ports.firstIndex(where: { $0.name == finalDestination }) {
             ports[index].visited = true
         }
-        
+
         // Generate new prices
         updatePrices()
-        
+
         // Random robbery if carrying too much cash
         if cash > 25000 && Double.random(in: 0...1) < 0.3 {
             let stolen = Double.random(in: 5000...15000)
             cash = max(0, cash - stolen)
             addLog("⚠️ Robbed! Lost ¥\(Int(stolen))")
         }
-        
-        addLog("Arrived at \(destination) after \(travelDays) days")
+
+        addLog("Arrived at \(finalDestination) after \(travelDays) days")
     }
-    
+
+    // MARK: - Storm System
+
+    func handleStorm(intendedDestination: String) -> String {
+        var message = "🌊⛈️ STORM! ⛈️🌊\n\n"
+        var actualDestination = intendedDestination
+
+        // Calculate damage based on current ship damage (seaworthiness)
+        // Original Perl formula: Damage increases risk of sinking
+        let seaworthiness = 1.0 - shipDamage
+        let stormDamage = Double.random(in: 0.1...0.3)  // Storm does 10-30% damage
+
+        // Apply storm damage
+        shipDamage = min(1.0, shipDamage + stormDamage)
+        let newSeaworthiness = Int((1.0 - shipDamage) * 100)
+
+        message += "Waves crash over the deck!\n"
+        message += "Storm damage: \(Int(stormDamage * 100))%\n"
+        message += "Seaworthiness: \(newSeaworthiness)%\n\n"
+
+        // Check for sinking (based on new damage level)
+        if shipDamage >= 0.8 {  // Critical damage
+            // Calculate ships lost based on damage severity
+            let sinkChance = (shipDamage - 0.8) / 0.2  // 0% at 80% damage, 100% at 100% damage
+            let shipsAtRisk = ships
+
+            if Double.random(in: 0...1) < sinkChance {
+                // Partial or total fleet loss
+                let shipsLost = Int.random(in: 1...max(1, ships))
+
+                if shipsLost >= ships {
+                    // TOTAL LOSS - Game Over
+                    message += "💀 YOUR ENTIRE FLEET HAS SUNK! 💀\n\n"
+                    message += "The storm was too powerful.\n"
+                    message += "All hands lost at sea.\n\n"
+                    message += "GAME OVER"
+                    ships = 0
+                    stormAlert = message
+                    addLog("⚠️ FLEET SUNK IN STORM - GAME OVER")
+                    return intendedDestination
+                } else {
+                    // PARTIAL LOSS
+                    ships -= shipsLost
+                    message += "⚠️ \(shipsLost) ship\(shipsLost == 1 ? "" : "s") lost to the storm!\n"
+                    message += "\(ships) ship\(ships == 1 ? "" : "s") remain\(ships == 1 ? "s" : "").\n\n"
+
+                    // Adjust cargo capacity
+                    let newCapacity = ships * 60
+                    if currentCargo > newCapacity {
+                        // Must jettison cargo
+                        let cargoLost = currentCargo - newCapacity
+                        message += "Cargo lost overboard: \(cargoLost) units\n\n"
+
+                        // Proportionally reduce cargo
+                        var totalCargo = currentCargo
+                        for (commodity, amount) in cargoHold {
+                            let proportionalLoss = Int(Double(amount) / Double(totalCargo) * Double(cargoLost))
+                            cargoHold[commodity] = max(0, amount - proportionalLoss)
+                        }
+                    }
+                }
+            }
+        }
+
+        // 33% chance of being blown off course
+        if Double.random(in: 0...1) < 0.33 {
+            // Random port (not current or intended destination)
+            let availablePorts = ports.map { $0.name }.filter { $0 != currentPort && $0 != intendedDestination }
+            if let randomPort = availablePorts.randomElement() {
+                actualDestination = randomPort
+                message += "🌀 BLOWN OFF COURSE! 🌀\n"
+                message += "We've been driven to \(randomPort)!\n"
+            }
+        } else {
+            message += "The storm subsides. We continue to \(intendedDestination).\n"
+        }
+
+        stormAlert = message
+        addLog("⚠️ STORM! Damage: \(Int(stormDamage * 100))%, Seaworthiness: \(newSeaworthiness)%")
+
+        return actualDestination
+    }
+
     // MARK: - Combat
 
     func encounterPirates() {
-        let pirateFleet = Int.random(in: 5...20)  // More pirates for realism
+        // Original formula: SN = FN R(SC / 10 + GN) + 1
+        // SC = ship capacity, GN = guns
+        let holdCapacity = ships * 60  // 60 units per ship
+        let maxPirates = (holdCapacity / 10) + guns
+        let pirateFleet = Int.random(in: 1...max(1, maxPirates)) + 1
+
         combatState = CombatState(pirateCount: pirateFleet)
         showingCombat = true
         addLog("⚠️ Pirates attacking! \(pirateFleet) ships approaching!")

@@ -82,42 +82,57 @@ struct MoneyMenuView: View {
                 // Banking operations
                 Section {
                     VStack(spacing: 12) {
-                        // Deposit
-                        Button(action: { showingDepositDialog = true }) {
-                            HStack {
-                                Image(systemName: "arrow.down.circle.fill")
-                                    .font(.title2)
-                                Text("Deposit")
-                                    .font(.headline)
-                                Spacer()
-                                Text("\(Int(game.calculateInterestRate() * 100))% APR")
-                                    .font(.caption)
-                                    .foregroundColor(.white)
+                        // Deposit - Only available in Hong Kong
+                        if game.currentPort == "Hong Kong" {
+                            Button(action: { showingDepositDialog = true }) {
+                                HStack {
+                                    Image(systemName: "arrow.down.circle.fill")
+                                        .font(.title2)
+                                    Text("Deposit")
+                                        .font(.headline)
+                                    Spacer()
+                                    Text("\(Int(game.calculateInterestRate() * 100))% APR")
+                                        .font(.caption)
+                                        .foregroundColor(.white)
+                                }
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color.green)
+                                .foregroundColor(.white)
+                                .cornerRadius(10)
                             }
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.green)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
+                            .disabled(game.cash <= 0)
                         }
-                        .disabled(game.cash <= 0)
-                        
-                        // Withdraw
-                        Button(action: { showingWithdrawDialog = true }) {
-                            HStack {
-                                Image(systemName: "arrow.up.circle.fill")
-                                    .font(.title2)
-                                Text("Withdraw")
-                                    .font(.headline)
-                                Spacer()
+
+                        // Withdraw - Only available in Hong Kong
+                        if game.currentPort == "Hong Kong" {
+                            Button(action: { showingWithdrawDialog = true }) {
+                                HStack {
+                                    Image(systemName: "arrow.up.circle.fill")
+                                        .font(.title2)
+                                    Text("Withdraw")
+                                        .font(.headline)
+                                    Spacer()
+                                }
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(10)
                             }
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
+                            .disabled(game.bank <= 0)
                         }
-                        .disabled(game.bank <= 0)
+
+                        // Show message if not in Hong Kong
+                        if game.currentPort != "Hong Kong" {
+                            Text("💼 Banking services only available in Hong Kong")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color(UIColor.tertiarySystemBackground))
+                                .cornerRadius(10)
+                        }
                         
                         // Borrow
                         Button(action: { showingBorrowDialog = true }) {

@@ -77,6 +77,15 @@ struct GameView: View {
                     .transition(.opacity)
                     .zIndex(100)
             }
+
+            // Storm alert overlay
+            if let stormMessage = game.stormAlert {
+                StormAlertView(message: stormMessage, onDismiss: {
+                    game.stormAlert = nil
+                })
+                .transition(.opacity)
+                .zIndex(99)
+            }
         }
     }
 }
@@ -294,6 +303,40 @@ struct RetirementView: View {
             }
             .padding()
             .navigationTitle("Game Over")
+        }
+    }
+}
+
+// MARK: - Storm Alert View
+
+struct StormAlertView: View {
+    let message: String
+    let onDismiss: () -> Void
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.9)
+                .ignoresSafeArea()
+
+            VStack(spacing: 24) {
+                Text(message)
+                    .font(.system(.title3, design: .monospaced))
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
+                    .padding()
+                    .background(Color.blue.opacity(0.3))
+                    .cornerRadius(15)
+
+                Button(action: onDismiss) {
+                    Text("Continue")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(width: 200, height: 50)
+                        .background(Color.blue)
+                        .cornerRadius(10)
+                }
+            }
+            .padding(40)
         }
     }
 }

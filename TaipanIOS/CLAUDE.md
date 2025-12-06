@@ -168,6 +168,102 @@ Examples:
 
 ## Version History & Release Notes
 
+### v1.0.3 - Storm System & Combat Rebalance (December 6, 2025)
+**Status**: ✅ Complete and tested
+
+#### Features Implemented
+
+**Storm System** (GameModel.swift:488-568):
+- 10% chance per voyage (matches Perl v1.2.8 lines 3310-3340)
+- Ship damage reduces seaworthiness (0-100% scale)
+- Sinking risk starts at 80% damage
+  - Calculated sink chance: `(shipDamage - 0.8) / 0.2`
+  - Can lose 1-N ships (partial loss) or entire fleet (game over)
+- Storm damage: 10-30% per storm encounter
+- Cargo jettison if ship capacity reduced below current cargo
+- 33% chance of blown off course to random port
+- Storm alert UI overlay (ContentView.swift:310-342)
+- Published `stormAlert` property for UI binding
+
+**Combat Scaling Fix** (GameModel.swift:572-581):
+- **Issue**: Fixed pirate count (5-20) didn't scale with player strength
+- **Original Formula**: `SN = FN R(SC / 10 + GN) + 1` (Perl line 1948)
+  - SC = ship capacity (ships × 60)
+  - GN = total guns
+- **Implementation**:
+  ```swift
+  let holdCapacity = ships * 60
+  let maxPirates = (holdCapacity / 10) + guns
+  let pirateFleet = Int.random(in: 1...max(1, maxPirates)) + 1
+  ```
+- **Impact**:
+  - 1 ship + 1 gun = 1-8 pirates (was 5-20)
+  - 5 ships + 40 guns = 1-71 pirates (was 5-20)
+  - 10 ships + 100 guns = 1-171 pirates (was 5-20)
+- Combat difficulty now properly scales throughout game
+
+**Banking Restriction** (MoneyMenuView.swift:86-135):
+- Deposit/Withdraw buttons only shown in Hong Kong
+- Matches Perl original behavior
+- Borrow/Repay remain available at all ports
+- Informational message shown when not in Hong Kong:
+  > "💼 Banking services only available in Hong Kong"
+
+#### Technical Details
+
+**New GameModel Properties**:
+```swift
+@Published var stormAlert: String?  // Storm message to display in UI
+```
+
+**Storm System Algorithm**:
+1. 10% random check in `sailTo()` function
+2. Calculate storm damage (10-30% random)
+3. Apply damage to `shipDamage` property
+4. Check sinking risk if damage >= 80%
+5. Calculate ships lost (partial or total)
+6. Adjust cargo if capacity reduced
+7. 33% chance determine blown off course
+8. Set `stormAlert` message for UI display
+9. Return actual destination (original or random port)
+
+**UI Integration**:
+- `StormAlertView` struct in ContentView.swift
+- ZStack overlay with z-index 99 (below combat at 100)
+- Black background with blue-tinted message box
+- "Continue" button dismisses alert (sets `stormAlert = nil`)
+- Transition opacity animation
+
+**Files Modified**:
+- `GameModel.swift`: Added storm system, fixed combat scaling
+- `MoneyMenuView.swift`: Hong Kong banking restriction
+- `ContentView.swift`: Storm alert overlay UI
+- `CLAUDE.md`: This documentation
+- `README.md`: User-facing feature documentation
+
+#### Testing Checklist v1.0.3
+
+- [x] Storm encounters occur ~10% of voyages
+- [x] Storm damage reduces seaworthiness display
+- [x] High damage (80%+) triggers sinking risk
+- [x] Ship loss adjusts cargo capacity correctly
+- [x] Blown off course to random port (33% of storms)
+- [x] Storm alert UI displays and dismisses properly
+- [x] Pirates scale with 1 ship: 1-8 enemies
+- [x] Pirates scale with 5 ships + 40 guns: ~50-70 enemies
+- [x] Pirates scale with 10 ships + 100 guns: ~100-170 enemies
+- [x] Deposit/Withdraw only visible in Hong Kong
+- [x] Borrow/Repay visible at all ports
+- [x] Save/load preserves all new features
+
+### v1.0.2 - Debt System Fixes (November 23, 2025)
+**Status**: ✅ Complete
+
+#### Bug Fixes
+- Fixed per-port debt synchronization issues
+- Enhanced debt payment distribution across ports
+- Added safety checks for zero debt state
+
 ### v1.0.0 - Initial iOS Port (November 20, 2025)
 **Status**: ✅ Complete and tested
 
@@ -244,7 +340,7 @@ Examples:
 1. **Li Yuen the Pirate Lord**: Special pirate encounter system (Perl v1.3.0)
 2. **Robberies & Cutthroats**: Cash robbery and bodyguard massacre (Perl v1.2.9)
 3. **Elder Brother Wu**: Emergency loans and escort system (Perl v1.2.9)
-4. **Storm System**: Ship sinking and blown off course (Perl v1.2.8)
+4. ~~**Storm System**: Ship sinking and blown off course (Perl v1.2.8)~~ ✅ DONE in v1.0.3!
 5. **Bodyguards**: Not yet in player state
 6. **Time-based Events**: Warehouse spoilage after 60 days
 7. **Bank Interest**: Not yet calculated on deposits
@@ -384,27 +480,27 @@ Reference Perl v1.3.0 (lines 3110-3230):
 - Price trend system (±5% changes, momentum, reversals)
 - Multi-port debt with 20% usury cap
 - Dynamic ship pricing based on armament
-- Combat formulas (escape, damage, booty)
-- Banking operations (deposit/withdraw)
+- Combat formulas (escape, damage, booty) ✅ FIXED v1.0.3: Now scales with fleet!
+- Banking operations (deposit/withdraw in Hong Kong only) ✅ FIXED v1.0.3
 - Warehouse system (10,000 capacity per port)
 - Save/load game state
 - Retirement ranking system
+- **Storm system** (10% chance, sinking, blown off course) ✅ NEW in v1.0.3!
 
 ### ⏳ Features Not Yet Implemented (from Perl v1.2.8-v2.1.1)
-- Storm system (10% chance, sinking, blown off course)
 - Li Yuen pirate lord encounters
 - Cash robberies (5% chance when cash > ¥25,000)
 - Bodyguard massacre (20% chance when debt > ¥20,000)
 - Elder Brother Wu (escort and emergency loans)
 - Time-based warehouse spoilage (60+ days)
 - Bank interest accrual (3-5% annual, compounded monthly)
-- Date/time system (currently not tracking game time)
+- Date/time system (game time tracked but not used for events yet)
 
 ### 🎯 Next Priority Features
-1. **Date/Time System**: Track game time for bank interest and warehouse events
+1. **Date/Time System**: Use game time for bank interest and warehouse events
 2. **Bank Interest**: Apply 3-5% annual interest monthly
-3. **Storm System**: 10% voyage chance, damage-based sinking
-4. **Li Yuen**: Special pirate encounter with tribute system
+3. **Li Yuen**: Special pirate encounter with tribute system
+4. **Robberies**: Cash robbery and bodyguard massacre events
 
 ## Performance Notes
 
@@ -440,8 +536,8 @@ Same as parent Perl project - check parent directory for LICENSE file.
 
 ---
 
-**Last Updated**: November 20, 2025
-**iOS Version**: 1.0.0
-**Perl Reference Version**: v2.1.1
+**Last Updated**: December 6, 2025
+**iOS Version**: 1.0.3
+**Perl Reference Version**: v2.2.1
 **Min iOS**: 16.0
 **Xcode**: 14.0+

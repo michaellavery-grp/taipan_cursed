@@ -31,7 +31,8 @@ You're a merchant captain in the dangerous waters of the South China Sea. Trade 
 **Features:**
 - ⚓ Trade across 7 Asian ports (Hong Kong, Shanghai, Nagasaki, Manila, Saigon, Singapore, Batavia)
 - 💰 Dynamic market system with realistic price trends
-- 🏴‍☠️ Naval combat with original 1982 formulas
+- 🏴‍☠️ Naval combat with original 1982 formulas (scales with your fleet!)
+- ⛈️ Storm system with ship damage and sinking risk (NEW in v1.0.3!)
 - 🏦 Multi-port banking and warehouse system
 - 💾 Save/load your trading empire
 - 📈 Rank-based retirement system
@@ -122,9 +123,9 @@ The game will launch on your iPhone! 🎉
 ### The Four Menus
 
 **🚢 Ship Menu**
-- **Buy Ships**: Expand your fleet (¥10,000 each, more if heavily armed)
-- **Sail to Port**: Travel between the 7 ports
-- **Repair Ship**: Fix damage from combat or storms
+- **Buy Ships**: Expand your fleet (¥5,000 each, +¥1,000 per 2 guns over 20)
+- **Sail to Port**: Travel between the 7 ports (10% storm chance!)
+- **Repair Ship**: Fix damage from combat or storms (CRITICAL for survival!)
 - **Buy Guns**: Arm your fleet for combat (¥500 per gun × ships)
 
 **📦 Trade Menu**
@@ -134,11 +135,11 @@ The game will launch on your iPhone! 🎉
 - **Retrieve Goods**: Get cargo from warehouse storage
 
 **💰 Money Menu**
-- **Bank Balance**: Check your bank account (Hong Kong/Shanghai only)
-- **Deposit**: Store cash safely in the bank
-- **Withdraw**: Get cash from your bank account
-- **Borrow**: Take loans (max ¥50,000 per port, 10% monthly interest)
-- **Pay Debt**: Pay down your debts
+- **Bank Balance**: Check your bank account
+- **Deposit**: Store cash safely (Hong Kong only - 3-5% interest!)
+- **Withdraw**: Get cash from bank (Hong Kong only)
+- **Borrow**: Take loans at any port (max ¥50,000 per port, 10% monthly interest)
+- **Pay Debt**: Pay down your debts at any port
 
 **⚙️ System Menu**
 - **Save Game**: Save your progress (JSON format)
@@ -179,7 +180,7 @@ The game will launch on your iPhone! 🎉
 
 ### Combat Tips
 
-When pirates attack:
+When pirates attack (pirate count scales with YOUR fleet now!):
 - **Fight**: Risk damage to your ships but earn booty if you win
 - **Run**: Try to escape (chance based on ships, damage, fleet size)
 - **Throw Cargo**: Lighten your load to improve escape chances
@@ -188,7 +189,19 @@ When pirates attack:
 - **Our Ships**: Your fleet size (more = better combat)
 - **Guns**: Total armament (more = more damage to pirates)
 - **Damage**: Ship health percentage (lower = more vulnerable)
-- **Enemy Ships**: Pirate fleet size
+- **Enemy Ships**: Pirate fleet size (now scales: 1-8 pirates with 1 ship, up to 100+ with large fleets!)
+
+### Storm Survival Tips ⛈️ (NEW!)
+
+Storms strike 10% of the time when sailing:
+- **Monitor Damage**: Check your damage % in the status bar
+- **Repair Often**: Don't sail with high damage! Repair before voyages!
+- **Sinking Risk**: At 80%+ damage, storms can sink your ships
+- **Fleet Loss**: Can lose 1-N ships (or entire fleet if unlucky!)
+- **Blown Off Course**: 33% chance storm drives you to random port
+- **Cargo Loss**: If ships sink, excess cargo is lost overboard
+
+**Pro Tip**: Always repair when damage reaches 40-50% to avoid catastrophic storms!
 
 ### Winning the Game
 
@@ -348,12 +361,13 @@ struct CombatView: View {
 4. Add "tea" to cargo and warehouse initializations
 5. Update `TradeMenuView.swift` to show tea
 
-**🔴 Hard - Implement Storm System**
-1. Study the Perl version (`../test_storm_mechanics.pl`)
-2. Add a `storm()` function to `GameModel.swift`
-3. Call it randomly (10% chance) in the `sail()` function
-4. Implement ship sinking based on damage
-5. Add UI alerts for storms
+**🔴 Hard - Add Li Yuen Pirate Lord**
+1. Study the Perl version (`../test_li_yuen.pl`)
+2. Add Li Yuen tribute system to `GameModel.swift`
+3. Implement 25% → 8.3% encounter reduction with tribute
+4. Create larger fleet size formula (SC/5 + GN + 5)
+5. Add double damage multiplier (F1=2)
+6. Create special "Good joss!" pass-through message
 
 ### Join the Community!
 
@@ -374,14 +388,26 @@ Include:
 
 ## 🎨 Want to Contribute?
 
-Pull requests welcome! Some ideas:
-- Add Li Yuen the Pirate Lord encounter system
-- Implement storm mechanics (sinking, blown off course)
-- Add robbery and bodyguard system
-- Create time-based warehouse events
-- Design custom UI themes
-- Add sound effects and music
-- Implement Game Center leaderboards
+Pull requests welcome! Here are features from the Perl version not yet in iOS:
+
+**High Priority**:
+- ✅ ~~Storm system~~ (DONE in v1.0.3!)
+- ✅ ~~Combat scaling~~ (DONE in v1.0.3!)
+- [ ] Li Yuen the Pirate Lord encounter system
+- [ ] Robbery and bodyguard/cutthroat system
+- [ ] Elder Brother Wu emergency loans and escorts
+- [ ] Time-based warehouse spoilage (60+ days)
+- [ ] Bank interest accrual (3-5% annual, compounded monthly)
+
+**Nice to Have**:
+- [ ] More ports (Canton, Macao, Osaka, etc.)
+- [ ] Historical events (Taiping Rebellion, Opium Wars)
+- [ ] Design custom UI themes
+- [ ] Sound effects and music
+- [ ] Implement Game Center leaderboards
+- [ ] iCloud save sync
+- [ ] iPad-optimized layout
+- [ ] Achievements system
 
 ## 📜 Credits
 
@@ -413,8 +439,27 @@ Happy trading! ⚓💰🏴‍☠️
 
 ---
 
-**Version**: 1.0.0
-**Last Updated**: November 20, 2025
+## 📋 Version History
+
+### v1.0.3 (December 6, 2025) - Storm Update ⛈️
+- **Storm System**: 10% chance per voyage with ship damage, sinking risk, and blown off course
+- **Combat Rebalance**: Pirates now scale with player fleet (1-8 for small fleets, 100+ for large!)
+- **Banking Restriction**: Deposit/Withdraw now Hong Kong only (matches original game)
+- **UI Enhancement**: Storm alert overlay with damage reports
+
+### v1.0.2 (November 23, 2025)
+- Critical debt system fixes
+- Per-port debt tracking enhancements
+
+### v1.0.0 (November 20, 2025) - Initial Release
+- Full iOS port of Taipan Cursed
+- Seven ports, four commodities, combat system
+- Banking, warehouses, save/load
+
+---
+
+**Current Version**: 1.0.3
+**Last Updated**: December 6, 2025
 **Minimum iOS**: 16.0
 **Xcode**: 14.0+
-**Vibe**: Retro Greenscreen Goodness™
+**Vibe**: Retro Greenscreen Goodness™ + Storm Survival!
