@@ -139,6 +139,11 @@ class GameModel: ObservableObject {
     @Published var showingCombat: Bool = false
     @Published var combatState: CombatState?
     @Published var stormAlert: String?  // Storm message to display
+    @Published var liYuenProtection: Bool = false  // LI flag - protection from tribute payments
+    @Published var liYuenAlert: String?  // Li Yuen encounter message
+    @Published var liYuenTributeDialog: LiYuenTributeOffer?  // Tribute request from representative
+    @Published var liYuenTributesPaid: Int = 0  // Number of tributes paid
+    @Published var liYuenRefusals: Int = 0  // Number of tributes refused (escalates danger)
 
     var cargoCapacity: Int {
         ships * 60
@@ -321,6 +326,10 @@ class GameModel: ObservableObject {
     // MARK: - Banking
     
     func deposit(_ amount: Double) -> Bool {
+        guard currentPort == "Hong Kong" else {
+            addLog("⚠️ Banking services only in Hong Kong")
+            return false
+        }
         if amount <= cash {
             cash -= amount
             bank += amount
@@ -329,8 +338,12 @@ class GameModel: ObservableObject {
         }
         return false
     }
-    
+
     func withdraw(_ amount: Double) -> Bool {
+        guard currentPort == "Hong Kong" else {
+            addLog("⚠️ Banking services only in Hong Kong")
+            return false
+        }
         if amount <= bank {
             bank -= amount
             cash += amount
@@ -455,6 +468,9 @@ class GameModel: ObservableObject {
         let travelDays = Int.random(in: 5...15)
         advanceTime(days: travelDays)
 
+        // Decay Li Yuen protection (5% chance per voyage)
+        decayLiYuenProtection()
+
         // Random pirate encounter (1 in 9 chance)
         if Double.random(in: 0...1) < (1.0 / 9.0) {
             encounterPirates()
@@ -483,6 +499,109 @@ class GameModel: ObservableObject {
         }
 
         addLog("Arrived at \(finalDestination) after \(travelDays) days")
+
+        // Li Yuen representative may approach in Hong Kong
+        checkForLiYuenRepresentative()
+
+        // AUTO-SAVE after every voyage to slot 1
+        autoSave()
+    }
+
+    // MARK: - Li Yuen Representative System
+
+    func checkForLiYuenRepresentative() {
+        // Only in Hong Kong
+        guard currentPort == "Hong Kong" else { return }
+
+        // Require significant cash to trigger (TRS-80 style)
+        guard cash > 20000 else { return }
+
+        // 5% chance when arriving with high cash
+        guard Double.random(in: 0...1) < 0.05 else { return }
+
+        // Calculate tribute amount (10-25% of cash)
+        let tributePercent = Double.random(in: 0.10...0.25)
+        let tributeAmount = Int(cash * tributePercent)
+
+        let message = """
+        🏴‍☠️ A VISITOR APPROACHES 🏴‍☠️
+
+        A well-dressed man in dark silks steps from the shadows of the dock.
+
+        "Greetings, Taipan. I represent... certain interests in these waters."
+
+        He glances at your laden ships.
+
+        "The Sea Goddess smiles upon those who show... gratitude. A donation of ¥\(tributeAmount) would ensure her continued favor."
+
+        His eyes gleam in the lamplight.
+
+        "Of course, the choice is yours. But the South China Sea can be... unpredictable... for those who refuse her blessings."
+        """
+
+        liYuenTributeDialog = LiYuenTributeOffer(amount: tributeAmount, message: message)
+        addLog("🏴‍☠️ Li Yuen's representative approaches...")
+    }
+
+    func payLiYuenTribute(amount: Int) {
+        guard cash >= Double(amount) else {
+            addLog("⚠️ Insufficient cash for tribute")
+            return
+        }
+
+        cash -= Double(amount)
+        liYuenTributesPaid += 1
+        liYuenProtection = true
+        liYuenRefusals = max(0, liYuenRefusals - 1)  // Reduce refusal count
+
+        addLog("💰 Paid ¥\(amount) tribute to Li Yuen")
+        addLog("🏴‍☠️ Gained Li Yuen's protection")
+
+        liYuenTributeDialog = nil
+    }
+
+    func refuseLiYuenTribute() {
+        liYuenRefusals += 1
+        liYuenProtection = false
+
+        addLog("⚠️ Refused Li Yuen's tribute demand")
+        addLog("💀 Li Yuen will remember this... (refusals: \(liYuenRefusals))")
+
+        liYuenTributeDialog = nil
+    }
+
+    // Li Yuen post-combat confiscation (if player didn't destroy entire fleet)
+    func applyLiYuenConfiscation(combat: CombatState) {
+        // Only applies to Li Yuen encounters
+        guard combat.isLiYuen else { return }
+
+        // Only if pirates still remain
+        guard combat.piratesRemaining > 0 else { return }
+
+        let opiumSeized = cargoHold["opium"] ?? 0
+        let cashDemanded = Int(cash * Double.random(in: 0.3...0.56))  // 30-56% of cash
+
+        if opiumSeized > 0 || cashDemanded > 0 {
+            var confiscationMessage = "🏴‍☠️ LI YUEN'S BOARDING PARTY 🏴‍☠️\n\n"
+            confiscationMessage += "The remaining pirate ships close in. Li Yuen's men swarm aboard!\n\n"
+
+            if opiumSeized > 0 {
+                cargoHold["opium"] = 0
+                confiscationMessage += "💀 They confiscate ALL your opium (\(opiumSeized) units)!\n\n"
+                addLog("💀 Li Yuen seized \(opiumSeized) units of opium!")
+            }
+
+            if cashDemanded > 0 && cash >= Double(cashDemanded) {
+                cash -= Double(cashDemanded)
+                confiscationMessage += "💰 Li Yuen demands ¥\(cashDemanded) as tribute!\n\n"
+                addLog("💰 Li Yuen demanded ¥\(cashDemanded) tribute!")
+            }
+
+            confiscationMessage += "'You got off easy, Taipan!' laughs Li Yuen's captain.\n\n"
+            confiscationMessage += "The pirates withdraw to their ships and sail away."
+
+            liYuenAlert = confiscationMessage
+        }
     }
 
     // MARK: - Storm System
@@ -570,15 +689,70 @@ class GameModel: ObservableObject {
     // MARK: - Combat
 
     func encounterPirates() {
-        // Original formula: SN = FN R(SC / 10 + GN) + 1
-        // SC = ship capacity, GN = guns
-        let holdCapacity = ships * 60  // 60 units per ship
+        let holdCapacity = ships * 60  // SC = ship capacity
+
+        // CHECK FOR LI YUEN ENCOUNTER with escalating refusal penalty
+        // Base: LI=0 (no protection): 1-in-4 (25%) chance
+        //       LI=1 (protection): 1-in-12 (8.3%) chance
+        // Each refusal increases chance: +5% per refusal (max 50%)
+        let baseChance = 4 + (liYuenProtection ? 8 : 0)
+
+        // Calculate refusal penalty: each refusal reduces the denominator
+        // Making Li Yuen MORE likely (smaller number = higher probability)
+        let refusalPenalty = max(0, liYuenRefusals)
+        let adjustedChance = max(2, baseChance - refusalPenalty)  // Minimum 1-in-2 (50%)
+
+        let isLiYuen = Int.random(in: 0..<adjustedChance) == 0
+
+        if isLiYuen {
+            handleLiYuenEncounter(holdCapacity: holdCapacity)
+            return
+        }
+
+        // NORMAL PIRATES (BASIC line 3120)
+        // SN = FN R(SC / 10 + GN) + 1
         let maxPirates = (holdCapacity / 10) + guns
         let pirateFleet = Int.random(in: 1...max(1, maxPirates)) + 1
 
-        combatState = CombatState(pirateCount: pirateFleet)
+        combatState = CombatState(pirateCount: pirateFleet, isLiYuen: false)
         showingCombat = true
         addLog("⚠️ Pirates attacking! \(pirateFleet) ships approaching!")
+    }
+
+    func handleLiYuenEncounter(holdCapacity: Int) {
+        if liYuenProtection {
+            // SAFE PASSAGE (BASIC line 3220: "Good joss!! They let us be!!")
+            let message = "🏴‍☠️ LI YUEN'S FLEET SIGHTED! 🏴‍☠️\n\n" +
+                         "The legendary pirate lord's black sails loom on the horizon...\n\n" +
+                         "But they recognize Elder Brother Wu's mark upon you.\n\n" +
+                         "\"Good joss, Taipan! Pass safely.\"\n\n" +
+                         "Li Yuen's fleet lets you be!"
+
+            liYuenAlert = message
+            addLog("🏴‍☠️ Li Yuen encounter - safe passage (Elder Brother Wu's protection)")
+        } else {
+            // ATTACK! (BASIC line 3230)
+            // SN = FN R(SC / 5 + GN) + 5 (MUCH larger fleet than normal pirates!)
+            // F1 = 2 (double damage!)
+            let maxFleet = (holdCapacity / 5) + guns + 5
+            let pirateFleet = Int.random(in: 5...max(5, maxFleet))
+
+            combatState = CombatState(pirateCount: pirateFleet, isLiYuen: true)
+            showingCombat = true
+
+            addLog("💀 LI YUEN ATTACKING! \(pirateFleet) legendary pirate ships!")
+        }
+    }
+
+    // BASIC line 2310: LI = LI AND FN R(20)
+    // Protection decay - 5% chance (1-in-20) to lose Li Yuen protection
+    func decayLiYuenProtection() {
+        if liYuenProtection {
+            if Int.random(in: 0..<20) == 0 {
+                liYuenProtection = false
+                addLog("⚠️ Li Yuen's protection has faded...")
+            }
+        }
     }
 
     // Process one round of combat based on player action
@@ -644,14 +818,22 @@ class GameModel: ObservableObject {
         if !combat.allPiratesSunk {
             let piratesLeft = combat.piratesRemaining
             let edScaled = 0.5  // Damage severity
+
+            // BASIC line 3230: F1 = 2 for Li Yuen (double damage!)
+            let damageMultiplier = combat.isLiYuen ? 2.0 : 1.0
+
             let baseDamage = Int.random(in: 0...Int(edScaled * Double(piratesLeft)))
             let additionalDamage = piratesLeft / 2
-            let damageTaken = baseDamage + additionalDamage
+            let damageTaken = Int(Double(baseDamage + additionalDamage) * damageMultiplier)
 
             shipDamage = min(1.0, shipDamage + (Double(damageTaken) / 100.0))
             combat.totalDamageTaken += damageTaken
 
             let seaworthiness = Int((1.0 - shipDamage) * 100)
+
+            if combat.isLiYuen {
+                combat.combatLog.append("⚠️ Li Yuen's pirates strike with legendary ferocity!")
+            }
             combat.combatLog.append("Enemy return fire! Took \(damageTaken) damage")
             combat.combatLog.append("Seaworthiness: \(seaworthiness)%")
 
@@ -679,20 +861,31 @@ class GameModel: ObservableObject {
             combat.outcome = .escaped
             combat.combatLog.append("Successfully escaped!")
             addLog("Escaped from pirates!")
+
+            // Li Yuen post-combat confiscation (Perl v1.0.0 style)
+            applyLiYuenConfiscation(combat: combat)
         } else {
             combat.combatLog.append("Couldn't lose them!")
 
             // Enemy attacks when run fails
             let piratesLeft = combat.piratesRemaining
             let edScaled = 0.5
+
+            // BASIC line 3230: F1 = 2 for Li Yuen (double damage!)
+            let damageMultiplier = combat.isLiYuen ? 2.0 : 1.0
+
             let baseDamage = Int.random(in: 0...Int(edScaled * Double(piratesLeft)))
             let additionalDamage = piratesLeft / 2
-            let damageTaken = baseDamage + additionalDamage
+            let damageTaken = Int(Double(baseDamage + additionalDamage) * damageMultiplier)
 
             shipDamage = min(1.0, shipDamage + (Double(damageTaken) / 100.0))
             combat.totalDamageTaken += damageTaken
 
             let seaworthiness = Int((1.0 - shipDamage) * 100)
+
+            if combat.isLiYuen {
+                combat.combatLog.append("⚠️ Li Yuen's pirates strike with legendary ferocity!")
+            }
             combat.combatLog.append("They fired on us! Took \(damageTaken) damage")
             combat.combatLog.append("Seaworthiness: \(seaworthiness)%")
 
@@ -725,15 +918,25 @@ class GameModel: ObservableObject {
 
         // Calculate booty based on original formula
         // BT = FN R(TI / 4 * 1000 * SN ^ 1.05) + FN R(1000) + 250
+        // Li Yuen gives 2x booty!
         let months = max(1, calculateMonthsSince1860())
         let bootyBase = Double(months) / 4.0 * 1000.0 * pow(Double(ships), 1.05)
-        let booty = Int(Double.random(in: 0...bootyBase)) + Int.random(in: 0...1000) + 250
+        let bootyMultiplier = combat.isLiYuen ? 2.0 : 1.0
+        let booty = Int(Double(Int(Double.random(in: 0...bootyBase)) + Int.random(in: 0...1000) + 250) * bootyMultiplier)
 
         cash += Double(booty)
         combat.booty = booty
-        combat.combatLog.append("VICTORY! All pirates defeated!")
-        combat.combatLog.append("Earned ¥\(booty) in booty")
-        addLog("⚔️ Victory! Earned ¥\(booty) in booty")
+
+        if combat.isLiYuen {
+            combat.combatLog.append("💰 LEGENDARY VICTORY!")
+            combat.combatLog.append("Defeated Li Yuen's fleet!")
+            combat.combatLog.append("Earned ¥\(booty) in treasure (2x for Li Yuen!)")
+            addLog("💰 Defeated Li Yuen! Legendary treasure: ¥\(booty)")
+        } else {
+            combat.combatLog.append("VICTORY! All pirates defeated!")
+            combat.combatLog.append("Earned ¥\(booty) in booty")
+            addLog("⚔️ Victory! Earned ¥\(booty) in booty")
+        }
     }
 
     private func endCombat(combat: CombatState) {
@@ -835,7 +1038,142 @@ class GameModel: ObservableObject {
     }
     
     // MARK: - Save/Load
-    
+
+    // Get App Support directory for save slots
+    private func getAppSupportDirectory() -> URL {
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        let gameDir = appSupport.appendingPathComponent("TaipanSaves")
+
+        // Create directory if needed
+        try? FileManager.default.createDirectory(at: gameDir, withIntermediateDirectories: true)
+
+        return gameDir
+    }
+
+    // Save to specific slot (1-4)
+    func saveToSlot(_ slot: Int) throws {
+        guard slot >= 1 && slot <= 4 else {
+            throw SaveError.invalidSlot
+        }
+
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+
+        let saveData = SaveData(
+            firmName: firmName,
+            currentPort: currentPort,
+            cash: cash,
+            bank: bank,
+            debt: debt,
+            portDebt: portDebt,
+            ships: ships,
+            guns: guns,
+            shipDamage: shipDamage,
+            cargoHold: cargoHold,
+            warehouses: warehouses,
+            ports: ports,
+            commodities: commodities,
+            gameDate: gameDate,
+            gameLog: gameLog,
+            liYuenProtection: liYuenProtection,
+            liYuenTributesPaid: liYuenTributesPaid,
+            liYuenRefusals: liYuenRefusals
+        )
+
+        let data = try encoder.encode(saveData)
+
+        let saveDir = getAppSupportDirectory()
+        let filename = "savegame\(slot).json"
+        let fileURL = saveDir.appendingPathComponent(filename)
+
+        try data.write(to: fileURL)
+        addLog("Saved to Slot \(slot)")
+    }
+
+    // Load from specific slot (1-4)
+    func loadFromSlot(_ slot: Int) throws {
+        guard slot >= 1 && slot <= 4 else {
+            throw SaveError.invalidSlot
+        }
+
+        let saveDir = getAppSupportDirectory()
+        let filename = "savegame\(slot).json"
+        let fileURL = saveDir.appendingPathComponent(filename)
+
+        guard FileManager.default.fileExists(atPath: fileURL.path) else {
+            throw SaveError.slotEmpty
+        }
+
+        let data = try Data(contentsOf: fileURL)
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+
+        let saveData = try decoder.decode(SaveData.self, from: data)
+
+        self.firmName = saveData.firmName
+        self.currentPort = saveData.currentPort
+        self.cash = saveData.cash
+        self.bank = saveData.bank
+        self.debt = saveData.debt
+        self.portDebt = saveData.portDebt ?? [:]
+        self.ships = saveData.ships
+        self.guns = saveData.guns
+        self.shipDamage = saveData.shipDamage
+        self.cargoHold = saveData.cargoHold
+        self.warehouses = saveData.warehouses
+        self.ports = saveData.ports
+        self.commodities = saveData.commodities
+        self.gameDate = saveData.gameDate
+        self.gameLog = saveData.gameLog
+        self.liYuenProtection = saveData.liYuenProtection ?? false
+        self.liYuenTributesPaid = saveData.liYuenTributesPaid ?? 0
+        self.liYuenRefusals = saveData.liYuenRefusals ?? 0
+
+        addLog("Loaded from Slot \(slot)")
+    }
+
+    // Auto-save to slot 1 after every sail
+    func autoSave() {
+        do {
+            try saveToSlot(1)
+        } catch {
+            addLog("⚠️ Auto-save failed: \(error.localizedDescription)")
+        }
+    }
+
+    // Check if slot has save data
+    func slotHasSave(_ slot: Int) -> Bool {
+        let saveDir = getAppSupportDirectory()
+        let filename = "savegame\(slot).json"
+        let fileURL = saveDir.appendingPathComponent(filename)
+        return FileManager.default.fileExists(atPath: fileURL.path)
+    }
+
+    // Get slot info (firm name and date)
+    func getSlotInfo(_ slot: Int) -> String {
+        guard slotHasSave(slot) else { return "Empty" }
+
+        do {
+            let saveDir = getAppSupportDirectory()
+            let filename = "savegame\(slot).json"
+            let fileURL = saveDir.appendingPathComponent(filename)
+
+            let data = try Data(contentsOf: fileURL)
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            let saveData = try decoder.decode(SaveData.self, from: data)
+
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "MM/dd/yy"
+            let dateStr = dateFormatter.string(from: saveData.gameDate)
+
+            return "\(saveData.firmName) - \(dateStr)"
+        } catch {
+            return "Error"
+        }
+    }
+
+    // Old save function - kept for backward compatibility
     func saveGame() throws {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
@@ -855,7 +1193,10 @@ class GameModel: ObservableObject {
             ports: ports,
             commodities: commodities,
             gameDate: gameDate,
-            gameLog: gameLog
+            gameLog: gameLog,
+            liYuenProtection: liYuenProtection,
+            liYuenTributesPaid: liYuenTributesPaid,
+            liYuenRefusals: liYuenRefusals
         )
         
         let data = try encoder.encode(saveData)
@@ -892,6 +1233,7 @@ class GameModel: ObservableObject {
         self.commodities = saveData.commodities
         self.gameDate = saveData.gameDate
         self.gameLog = saveData.gameLog
+        self.liYuenProtection = saveData.liYuenProtection ?? false  // Backward compatibility - defaults to no protection
 
         addLog("Game loaded")
     }
@@ -943,7 +1285,11 @@ class CombatState: ObservableObject {
     var ok: Int = 0
     var ik: Int = 0
 
-    init(pirateCount: Int) {
+    // Li Yuen flag (BASIC F1 = 2 for double damage)
+    let isLiYuen: Bool
+
+    init(pirateCount: Int, isLiYuen: Bool = false) {
+        self.isLiYuen = isLiYuen
         self.pirateShips = (0..<pirateCount).map { _ in
             PirateShip(health: Int.random(in: 20...50))
         }
@@ -992,6 +1338,18 @@ struct RetirementResult {
     let millionaire: Bool
 }
 
+struct LiYuenTributeOffer {
+    let amount: Int
+    let message: String
+}
+
+enum SaveError: Error {
+    case invalidSlot
+    case slotEmpty
+    case encodingFailed
+    case decodingFailed
+}
+
 struct SaveData: Codable {
     let firmName: String
     let currentPort: String
@@ -1008,4 +1366,7 @@ struct SaveData: Codable {
     let commodities: [String: Commodity]
     let gameDate: Date
     let gameLog: [String]
+    let liYuenProtection: Bool?  // Optional for backward compatibility
+    let liYuenTributesPaid: Int?  // Optional for backward compatibility
+    let liYuenRefusals: Int?  // Optional for backward compatibility
 }

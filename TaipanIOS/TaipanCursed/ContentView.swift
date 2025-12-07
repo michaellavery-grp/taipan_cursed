@@ -86,6 +86,30 @@ struct GameView: View {
                 .transition(.opacity)
                 .zIndex(99)
             }
+
+            // Li Yuen safe passage alert
+            if let liYuenMessage = game.liYuenAlert {
+                LiYuenAlertView(message: liYuenMessage, onDismiss: {
+                    game.liYuenAlert = nil
+                })
+                .transition(.opacity)
+                .zIndex(98)
+            }
+
+            // Li Yuen tribute dialog
+            if let tributeOffer = game.liYuenTributeDialog {
+                LiYuenTributeDialogView(
+                    offer: tributeOffer,
+                    onPay: {
+                        game.payLiYuenTribute(amount: tributeOffer.amount)
+                    },
+                    onRefuse: {
+                        game.refuseLiYuenTribute()
+                    }
+                )
+                .transition(.opacity)
+                .zIndex(97)
+            }
         }
     }
 }
@@ -334,6 +358,101 @@ struct StormAlertView: View {
                         .frame(width: 200, height: 50)
                         .background(Color.blue)
                         .cornerRadius(10)
+                }
+            }
+            .padding(40)
+        }
+    }
+}
+
+// MARK: - Li Yuen Alert View
+
+struct LiYuenAlertView: View {
+    let message: String
+    let onDismiss: () -> Void
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.9)
+                .ignoresSafeArea()
+
+            VStack(spacing: 24) {
+                Text(message)
+                    .font(.system(.title3, design: .monospaced))
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
+                    .padding()
+                    .background(Color.red.opacity(0.3))
+                    .cornerRadius(15)
+
+                Button(action: onDismiss) {
+                    Text("Continue")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(width: 200, height: 50)
+                        .background(Color.red)
+                        .cornerRadius(10)
+                }
+            }
+            .padding(40)
+        }
+    }
+}
+
+// MARK: - Li Yuen Tribute Dialog View
+
+struct LiYuenTributeDialogView: View {
+    let offer: LiYuenTributeOffer
+    let onPay: () -> Void
+    let onRefuse: () -> Void
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.95)
+                .ignoresSafeArea()
+
+            VStack(spacing: 30) {
+                Text(offer.message)
+                    .font(.system(.body, design: .monospaced))
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
+                    .padding()
+                    .background(Color.red.opacity(0.2))
+                    .cornerRadius(15)
+
+                HStack(spacing: 20) {
+                    // Pay Tribute Button
+                    Button(action: onPay) {
+                        VStack(spacing: 8) {
+                            Image(systemName: "hand.raised.fill")
+                                .font(.title)
+                            Text("Pay Tribute")
+                                .font(.headline)
+                            Text("¥\(offer.amount)")
+                                .font(.system(.title3, design: .monospaced))
+                                .fontWeight(.bold)
+                        }
+                        .foregroundColor(.white)
+                        .frame(width: 150, height: 120)
+                        .background(Color.green)
+                        .cornerRadius(15)
+                    }
+
+                    // Refuse Button
+                    Button(action: onRefuse) {
+                        VStack(spacing: 8) {
+                            Image(systemName: "hand.thumbsdown.fill")
+                                .font(.title)
+                            Text("Refuse")
+                                .font(.headline)
+                            Text("Risk Attack")
+                                .font(.caption)
+                        }
+                        .foregroundColor(.white)
+                        .frame(width: 150, height: 120)
+                        .background(Color.red)
+                        .cornerRadius(15)
+                    }
                 }
             }
             .padding(40)

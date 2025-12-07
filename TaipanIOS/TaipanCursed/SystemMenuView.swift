@@ -6,7 +6,6 @@ struct SystemMenuView: View {
     @Binding var showingRetirement: Bool
     @Binding var retirementResult: RetirementResult?
     @State private var showingSaveAlert = false
-    @State private var showingLoadPicker = false
     @State private var showingRetireConfirm = false
     @State private var showingGameLog = false
     
@@ -64,48 +63,90 @@ struct SystemMenuView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 
-                // Actions
+                // Save Game Section
                 Section {
                     VStack(spacing: 12) {
-                        // Save Game
-                        Button(action: {
-                            do {
-                                try game.saveGame()
-                                showingSaveAlert = true
-                            } catch {
-                                print("Error saving: \(error)")
+                        ForEach(1...4, id: \.self) { slot in
+                            Button(action: {
+                                do {
+                                    try game.saveToSlot(slot)
+                                    showingSaveAlert = true
+                                } catch {
+                                    print("Error saving to slot \(slot): \(error)")
+                                }
+                            }) {
+                                HStack {
+                                    Image(systemName: "opticaldiscdrive")
+                                        .font(.title3)
+                                    Text("Save Slot \(slot)")
+                                        .font(.headline)
+                                    Spacer()
+                                    if slot == 1 {
+                                        Text("(Auto-Save)")
+                                            .font(.caption)
+                                            .foregroundColor(.white)
+                                    }
+                                }
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(10)
                             }
-                        }) {
-                            HStack {
-                                Image(systemName: "square.and.arrow.down.fill")
-                                    .font(.title2)
-                                Text("Save Game")
-                                    .font(.headline)
-                                Spacer()
-                            }
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
                         }
-                        
-                        // Load Game
-                        Button(action: { showingLoadPicker = true }) {
-                            HStack {
-                                Image(systemName: "square.and.arrow.up.fill")
-                                    .font(.title2)
-                                Text("Load Game")
-                                    .font(.headline)
-                                Spacer()
+                    }
+                } header: {
+                    Text("Save Game")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                // Load Game Section
+                Section {
+                    VStack(spacing: 12) {
+                        ForEach(1...4, id: \.self) { slot in
+                            Button(action: {
+                                do {
+                                    try game.loadFromSlot(slot)
+                                } catch {
+                                    print("Error loading from slot \(slot): \(error)")
+                                }
+                            }) {
+                                HStack {
+                                    Image(systemName: "arrow.down.doc")
+                                        .font(.title3)
+                                    Text("Load Slot \(slot)")
+                                        .font(.headline)
+                                    Spacer()
+                                    // Show slot info if exists
+                                    if game.slotHasSave(slot) {
+                                        Text(game.getSlotInfo(slot))
+                                            .font(.caption)
+                                            .foregroundColor(.white)
+                                    } else {
+                                        Text("Empty")
+                                            .font(.caption)
+                                            .foregroundColor(.white.opacity(0.6))
+                                    }
+                                }
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(game.slotHasSave(slot) ? Color.green : Color.gray)
+                                .foregroundColor(.white)
+                                .cornerRadius(10)
                             }
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.green)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
+                            .disabled(!game.slotHasSave(slot))
                         }
-                        
+                    }
+                } header: {
+                    Text("Load Game")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                // Other Actions
+                Section {
+                    VStack(spacing: 12) {
                         // Game Log
                         Button(action: { showingGameLog = true }) {
                             HStack {
@@ -251,9 +292,6 @@ struct SystemMenuView: View {
         .sheet(isPresented: $showingGameLog) {
             GameLogView(game: game)
         }
-        .sheet(isPresented: $showingLoadPicker) {
-            DocumentPicker(game: game, isPresented: $showingLoadPicker)
-        }
     }
     
     func formatDate(_ date: Date) -> String {
@@ -287,40 +325,3 @@ struct GameLogView: View {
     }
 }
 
-// MARK: - Document Picker
-
-struct DocumentPicker: UIViewControllerRepresentable {
-    @ObservedObject var game: GameModel
-    @Binding var isPresented: Bool
-    
-    func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
-        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.json])
-        picker.delegate = context.coordinator
-        return picker
-    }
-    
-    func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {}
-    
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-    
-    class Coordinator: NSObject, UIDocumentPickerDelegate {
-        let parent: DocumentPicker
-        
-        init(_ parent: DocumentPicker) {
-            self.parent = parent
-        }
-        
-        func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-            guard let url = urls.first else { return }
-            
-            do {
-                try parent.game.loadGame(from: url)
-                parent.isPresented = false
-            } catch {
-                print("Error loading game: \(error)")
-            }
-        }
-    }
-}
