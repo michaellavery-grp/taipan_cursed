@@ -168,6 +168,140 @@ Examples:
 
 ## Version History & Release Notes
 
+### v1.0.5 - Li Yuen Tribute System (December 7, 2025)
+**Status**: ✅ Complete and tested
+
+#### Features Implemented
+
+**Li Yuen Tribute/Protection System** (GameModel.swift:142-571):
+- Complete implementation based on three historical sources:
+  1. TRS-80 original (1979) - Sea Goddess donation system
+  2. Apple II BASIC (1982) - Li Yuen encounter mechanics
+  3. Perl v1.0.0 (2020) - Post-combat confiscation
+- Representative approach in Hong Kong (5% chance when cash > ¥20,000)
+- Donation to Sea Goddess (Tin Hau temple) - 10-25% of cash
+- Pay/refuse tribute dialog with dramatic messaging
+- Protection reduces Li Yuen encounter rate: 25% → 8.3%
+- Escalating refusal penalty (each refusal increases encounter rate, max 50%)
+- Protection decay (5% random chance per voyage)
+- Post-combat confiscation if Li Yuen fleet survives:
+  - Seizes ALL opium cargo
+  - Demands 30-56% of cash
+  - "You got off easy, Taipan!" message
+- Tribute tracking (payments and refusals count)
+
+**Save System Redesign** (GameModel.swift:927-1055):
+- 4 fixed save slots (savegame1-4.json) in App Support directory
+- Auto-save to slot 1 after every voyage (prevents crash data loss)
+- Slot status display shows firm name and date
+- Load game UI shows "Empty" or save info per slot
+- Backward compatible with old saves (optional SaveData fields)
+
+**Banking Restriction Fix** (GameModel.swift:326-349):
+- Deposit/withdraw functions now have Hong Kong guard clauses
+- Function-level enforcement (not just UI hiding)
+- Matches 1979 original game mechanics
+- "⚠️ Banking services only in Hong Kong" message
+
+**UI Enhancements** (ContentView.swift:99-461):
+- `LiYuenTributeDialogView` - Pay/refuse tribute decision
+  - Green "Pay Tribute" button with amount display
+  - Red "Refuse" button with "Risk Attack" warning
+  - Dramatic dark silks representative dialog
+  - Z-index 97 (below storm at 98, combat at 100)
+- `LiYuenAlertView` - Post-combat confiscation messages
+  - Red-tinted overlay for danger
+  - Shows opium seized and cash demanded
+  - Z-index 98
+- Save slot UI in SystemMenuView.swift (lines 67-146):
+  - 4 save buttons with slot numbers
+  - Slot 1 marked "(Auto-Save)"
+  - 4 load buttons with save info or "Empty"
+  - Green background for occupied slots, gray for empty
+
+#### Technical Details
+
+**New GameModel Properties**:
+```swift
+@Published var liYuenProtection: Bool = false  // TR flag - protection status
+@Published var liYuenAlert: String?  // Post-combat confiscation message
+@Published var liYuenTributeDialog: LiYuenTributeOffer?  // Tribute offer from representative
+@Published var liYuenTributesPaid: Int = 0  // Number of tributes paid
+@Published var liYuenRefusals: Int = 0  // Number refused (escalates danger)
+```
+
+**New Struct**:
+```swift
+struct LiYuenTributeOffer {
+    let amount: Int
+    let message: String
+}
+```
+
+**SaveData Updates**:
+```swift
+// All optional for backward compatibility
+let liYuenProtection: Bool?
+let liYuenTributesPaid: Int?
+let liYuenRefusals: Int?
+```
+
+**Key Functions**:
+- `checkForLiYuenRepresentative()` - 5% chance in Hong Kong (lines 512-547)
+- `payLiYuenTribute(amount:)` - Grants protection, reduces refusals (lines 549-556)
+- `refuseLiYuenTribute()` - Increases refusal count, removes protection (lines 558-563)
+- `decayLiYuenProtection()` - 5% random expiry per voyage (lines 565-571)
+- `applyLiYuenConfiscation(combat:)` - Post-combat seizure (lines 573-605)
+- `saveToSlot(_:)` / `loadFromSlot(_:)` - 4-slot save system (lines 927-1055)
+- `autoSave()` - Called after every sailTo() (line 501)
+
+**Escalating Encounter Rate Algorithm**:
+```swift
+let baseChance = 4 + (liYuenProtection ? 8 : 0)  // 25% or 8.3%
+let refusalPenalty = max(0, liYuenRefusals)
+let adjustedChance = max(2, baseChance - refusalPenalty)  // Max 50%
+```
+- No protection, no refusals: 1-in-4 (25%)
+- With protection: 1-in-12 (8.3%)
+- 1 refusal: 1-in-3 (33%)
+- 2 refusals: 1-in-2 (50%) - capped here
+
+**Files Modified**:
+- `GameModel.swift`: Li Yuen system + 4-slot saves + banking fix
+- `ContentView.swift`: Tribute dialog UI + alert overlay
+- `SystemMenuView.swift`: Save/load slot UI
+- `LI_YUEN_COMPLETE_IMPLEMENTATION.md`: Full documentation
+- `COMPLETE_v1.0.4_CHANGES.md`: Change summary
+- `IMPLEMENTATION_PLAN_v1.0.4.md`: Planning docs
+
+#### Research Sources
+- **taipan_game_book.txt** (Archive.org CC0) - Lines 671-682, 9168-9213, 8363-8368
+- **BASIC.txt** (1982 Apple II) - Lines 3110-3230 (Li Yuen encounters)
+- **Taipan_2020_v1.0.0.pl** - Lines 1325-1354 (post-combat confiscation)
+- Web searches for player strategy guides and mechanics
+
+#### Testing Checklist v1.0.5
+
+- [x] Tribute offer appears in Hong Kong (5% chance, cash > ¥20k)
+- [x] Pay tribute grants protection, reduces refusal count
+- [x] Refuse tribute warns of danger, increases refusal count
+- [x] Protection provides safe passage (8.3% encounter rate)
+- [x] No protection = attack (25% encounter, escalates with refusals)
+- [x] Refusal count increases encounter rate (max 50%)
+- [x] Post-combat confiscation if Li Yuen fleet survives
+- [x] Protection decays randomly (5% per voyage)
+- [x] Save/load preserves all Li Yuen data
+- [x] Auto-save after every sail works correctly
+- [x] 4-slot save system functional
+- [x] Backward compatibility with old saves
+- [x] Banking restricted to Hong Kong (function-level guards)
+
+### v1.0.4 - Save System Overhaul
+**Status**: ✅ Merged into v1.0.5
+
+- Development version for save system work
+- All features rolled into v1.0.5 release
+
 ### v1.0.3 - Storm System & Combat Rebalance (December 6, 2025)
 **Status**: ✅ Complete and tested
 
@@ -456,13 +590,16 @@ Reference Perl v1.2.8 (lines 3310-3340):
 - 33% chance blown off course to random port
 - See `test_storm_mechanics.pl` in parent directory
 
-### Adding Li Yuen (Future Enhancement)
-Reference Perl v1.3.0 (lines 3110-3230):
-- Special pirate lord encounter
-- Tribute system (25% → 8.3% encounter reduction)
-- Double damage multiplier (F1=2)
-- Larger fleet size
-- See `test_li_yuen.pl` in parent directory
+### ~~Adding Li Yuen~~ ✅ IMPLEMENTED in v1.0.5!
+Complete tribute/protection system implemented with:
+- Sea Goddess donation system (TRS-80 original)
+- Representative approach in Hong Kong
+- Pay/refuse tribute dialog
+- Protection: 25% → 8.3% encounter reduction
+- Escalating refusals (up to 50% encounter rate)
+- Protection decay (5% per voyage)
+- Post-combat confiscation mechanics
+- See `LI_YUEN_COMPLETE_IMPLEMENTATION.md` for details
 
 ## Gotchas & Known Issues
 
@@ -475,7 +612,7 @@ Reference Perl v1.3.0 (lines 3110-3230):
 
 ## Parity with Perl Original
 
-### ✅ Features Matching Perl v2.1.1
+### ✅ Features Matching Perl v2.2.2
 - Commodity base prices and volatilities
 - Price trend system (±5% changes, momentum, reversals)
 - Multi-port debt with 20% usury cap
@@ -483,12 +620,18 @@ Reference Perl v1.3.0 (lines 3110-3230):
 - Combat formulas (escape, damage, booty) ✅ FIXED v1.0.3: Now scales with fleet!
 - Banking operations (deposit/withdraw in Hong Kong only) ✅ FIXED v1.0.3
 - Warehouse system (10,000 capacity per port)
-- Save/load game state
+- Save/load game state (✅ ENHANCED v1.0.5: 4 slots + auto-save)
 - Retirement ranking system
 - **Storm system** (10% chance, sinking, blown off course) ✅ NEW in v1.0.3!
+- **Li Yuen tribute system** (Sea Goddess donation, protection, refusals) ✅ NEW in v1.0.5!
 
-### ⏳ Features Not Yet Implemented (from Perl v1.2.8-v2.1.1)
-- Li Yuen pirate lord encounters
+### 🚀 Features EXCEEDING Perl Original
+- **Escalating refusals**: iOS tracks refusal count and increases Li Yuen encounter rate (Perl doesn't)
+- **Post-combat confiscation**: iOS implements Perl v1.0.0 mechanics (not in v2.2.2)
+- **Auto-save**: iOS auto-saves after every voyage (Perl requires manual save)
+- **4-slot save system**: iOS has fixed slots with status display (Perl uses date-stamped files)
+
+### ⏳ Features Not Yet Implemented (from Perl v1.2.9-v2.1.1)
 - Cash robberies (5% chance when cash > ¥25,000)
 - Bodyguard massacre (20% chance when debt > ¥20,000)
 - Elder Brother Wu (escort and emergency loans)
@@ -497,10 +640,10 @@ Reference Perl v1.3.0 (lines 3110-3230):
 - Date/time system (game time tracked but not used for events yet)
 
 ### 🎯 Next Priority Features
-1. **Date/Time System**: Use game time for bank interest and warehouse events
-2. **Bank Interest**: Apply 3-5% annual interest monthly
-3. **Li Yuen**: Special pirate encounter with tribute system
-4. **Robberies**: Cash robbery and bodyguard massacre events
+1. **Robberies & Bodyguards**: Cash robbery and bodyguard massacre events (Perl v1.2.9)
+2. **Elder Brother Wu**: Emergency loans and escort system (Perl v1.2.9)
+3. **Bank Interest**: Apply 3-5% annual interest monthly
+4. **Date/Time System**: Use game time for bank interest and warehouse events
 
 ## Performance Notes
 

@@ -337,16 +337,34 @@ perl "$TAIPAN_SCRIPT"
 
 ## Version History
 
-- **v2.2.0**: Animated Pirate Ship Splash Screen (latest)
-  - Replaced static ASCII art splash with 60-frame Lottie animation converted to ASCII
-  - Animated pirate ship at 10 fps using Curses::UI timer system
+- **v2.2.2**: Li Yuen Sea Goddess Donation System (latest)
+  - **Sea Goddess Donation**: Implemented complete tribute system from TRS-80 original
+  - Representative approach in Hong Kong when `cash > ¥100` and `TR = 0`
+  - Donation amount: up to 50% of cash (DN variable from game book)
+  - Tin Hau temple story dialog with Li Yuen's representative
+  - Pay: Sets `li_yuen_tribute = 1` (protection granted), jade medallion reward
+  - Refuse: Warning message, no protection
+  - Protection expiry: 5% random chance per voyage (lines 653-659)
+  - Integration with existing Li Yuen encounter system (lines 2888-2941)
+  - Based on research from Archive.org game book (CC0 public domain)
+  - See `LI_YUEN_COMPLETE_IMPLEMENTATION.md` for full details
+- **v2.2.1**: Path Resolution Fix
+  - Fixed `use lib` compile-time error with `FindBin::RealBin` instead of `dirname(__FILE__)`
+  - Now works correctly when run from any directory
+  - BEGIN block ensures $SCRIPT_DIR is set before module loading
+- **v2.2.0**: Animated Pirate Ship Splash Screen + Portable Paths
+  - **Animated Splash**: Replaced static ASCII art splash with 60-frame Lottie animation converted to ASCII
+  - Fullscreen animated pirate ship at 10 fps using Curses::UI modal loop
   - 100x40 character grid for high-detail rendering
   - Animation module in `ascii_ship_animation/ship_animation.pl`
   - 60 frames with title, ship animation, and "Press ANY key to start" footer
   - Lottie source: https://lottie.host/9bb9c4f8-1182-11ee-83af-9f26319e45f0/JS4u5BmxEi.json
   - Conversion pipeline: Lottie → Puppeteer (1200x1200 PNG) → jp2a (100x40 ASCII)
-  - Timer automatically stops when splash screen is dismissed
-  - Uses `File::Basename` for portable module path resolution
+  - **Portable Paths**: All file paths now relative to script directory using `$SCRIPT_DIR`
+  - Can run game from anywhere on filesystem - finds maps, saves, and animation files automatically
+  - Debug log, map files, and saves directory all created in script directory
+  - Uses `File::Spec` for cross-platform path handling
+  - Direct to New/Load game choice after animated splash (removed redundant static splash)
 - **v2.1.1**: Quality of Life Polish
   - Real-time seaworthiness display during combat damage (Fight and Run)
   - Real-time status updates after storm damage (partial loss and survival)
