@@ -1,6 +1,6 @@
 ![Perl Version](https://img.shields.io/badge/perl-5.x-blue?logo=perl)
 ![Platform](https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20WSL-lightgrey?logo=linux)
-![License](https://img.shields.io/badge/license-MIT-green)
+![License](https://img.shields.io/badge/license-GPL--3.0-blue)
 ![GitHub stars](https://img.shields.io/github/stars/michaellavery-grp/taipan_cursed?style=social)
 ![Terminal](https://img.shields.io/badge/interface-100%25%20terminal-success?logo=gnometerminal)
 ![Retro](https://img.shields.io/badge/retro-1979-orange)
@@ -187,17 +187,16 @@ cpan POSIX
 git clone https://github.com/michaellavery-grp/taipan_cursed.git
 cd taipan_cursed
 
-# Switch to the latest release branch
-git checkout Taipan_v1.0_alpha
-
 # Make executable
-chmod +x Taipan_2020_v1_1_0.pl
+chmod +x Taipan_2020_v2.2.0.pl launch_taipan.sh
 
 # Ensure ASCII map files are in the same directory
 ls ascii_taipan_map*.txt
 
 # Launch the game
-./Taipan_2020_v1_1_0.pl
+./launch_taipan.sh
+# or directly:
+./Taipan_2020_v2.2.0.pl
 ```
 
 ### First Run
@@ -236,9 +235,8 @@ ls ascii_taipan_map*.txt
 
 ```
 taipan_cursed/
-├── Taipan_2020_v1_1_0.pl      # Latest version (2,515 lines)
-├── Taipan_2020_v1_0_1.pl      # Previous release
-├── Taipan_2020_v1_0_0.pl      # Earlier version
+├── Taipan_2020_v2.2.0.pl      # Latest version
+├── launch_taipan.sh           # Launch script
 ├── ascii_taipan_map1.txt      # Home port map
 ├── ascii_taipan_map2.txt      # Shanghai indicator
 ├── ascii_taipan_map3.txt      # Nagasaki indicator
@@ -247,7 +245,7 @@ taipan_cursed/
 ├── ascii_taipan_map6.txt      # Batavia indicator
 ├── ascii_taipan_map7.txt      # Singapore indicator
 ├── ascii_taipan_map_legend.txt # Map key
-└── saves/                     # Auto-generated save directory
+└── saves/                     # Save game directory
     └── *.dat                  # JSON save files
 ```
 
