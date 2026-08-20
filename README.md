@@ -8,7 +8,7 @@
 
 > *"Taipan Cursed, sailing as the Dutch East India Company, preserves its legacy with JSON ledgers and zen koans, crafted with Grok's celestial guidance from xAI."*
 
-**Latest Release: v2.2.3** - Code quality pass: deduplicated repeated validation/capacity logic into shared helper functions, fixed a crash-on-corrupt-save-file bug, and made the test harnesses actually fail (non-zero exit) when a check fails. No gameplay changes. See [CLAUDE.md](CLAUDE.md#version-history) for the full version history, including the animated splash screen, portable paths, and Li Yuen tribute system added in v2.2.0-v2.2.2.
+**Latest Release: v2.2.3 (2026)** - Now boots into a fullscreen animated ASCII pirate ship splash screen, adds Li Yuen's Sea Goddess tribute system straight from the original TRS-80 game book, and ships a hardened, better-tested codebase underneath. One command to play: `./launch_taipan.sh`. See "What's New" below, or the full [version history](CLAUDE.md#version-history).
 
 ## 🌊 What is Taipan Cursed?
 
@@ -22,26 +22,32 @@ Set in the treacherous waters of 1860s East Asia, you'll command a merchant flee
 
 *Click to watch the interactive terminal demo on asciinema.org*
 
-## 🆕 What's New in v2.1.1?
+## 🆕 What's New in v2.2.3?
 
-**QUALITY OF LIFE POLISH:**
-- 🩺 **Real-Time Seaworthiness Display**: Status updates immediately during combat damage!
-  - See hull integrity % drop in real-time when enemy ships fire
-  - Updates instantly when Run fails and enemy attacks
-  - Storm damage shows immediately after partial ship loss
-  - No more waiting until end of combat to see your ship status
-- 🎯 **Smart Retirement Dialog**: Never be nagged about retiring again!
-  - First time: Shows full retirement stats and asks if you want to retire
-  - Decline once: Sets `retire_offered` flag, shows "The seas await, Taipan! We sail on!"
-  - Future attempts: Silently blocked - you made your choice!
-  - Flag persists in save files for consistency
-- 🔧 **Backward Compatibility**: Old saves auto-upgrade with new fields
-  - `retire_offered`, `li_yuen_tribute`, `bodyguards`, etc. default gracefully
-  - No save file breakage from new features
+**🏴‍☠️ ANIMATED PIRATE SHIP SPLASH SCREEN (v2.2.0):**
+- Boot into a **fullscreen, 60-frame animated ASCII pirate ship** at 10fps before the game even starts
+- Rendered at 100x40 character resolution from a real Lottie animation, hand-converted through a Puppeteer → jp2a ASCII art pipeline
+- Press any key to skip straight into New Game / Load Game
+- Runs from any directory now - all paths (maps, saves, debug log, animation frames) resolve relative to the script, not your `$PWD`
 
-**Previous Major Updates (v2.1.0):**
+**⛩️ LI YUEN'S SEA GODDESS TRIBUTE (v2.2.2):**
+- A brand-new narrative encounter, faithfully reconstructed from the original TRS-80 game book: a well-dressed stranger meets you on the Hong Kong docks offering the pirate lord Li Yuen's protection in exchange for a donation to the temple of Tin Hau
+- Pay and get a jade medallion + safe passage (encounter rate for Li Yuen drops from 25% to 8.3%); refuse and take your chances
+- Protection has a 5% chance of lapsing each voyage, so it is not a permanent "easy mode" button
 
-**MAJOR UI/UX & COMBAT OVERHAUL:**
+**🔧 HARDENED CODE (v2.2.3):**
+- Fixed a bug where loading a corrupted or incompatible save file could crash the entire Curses UI and leave your terminal in a broken state - now it just shows a clean error dialog
+- Deduplicated repeated validation and cargo/warehouse-capacity math across the codebase into shared helper functions
+- All six `test_*.pl` regression harnesses now actually fail (non-zero exit) when a check fails, instead of silently always reporting success
+
+**Previous Major Updates (v2.1.x):**
+
+**QUALITY OF LIFE POLISH (v2.1.1):**
+- 🩺 Real-time seaworthiness display during combat and storm damage - no more waiting until the fight ends to see your hull integrity drop
+- 🎯 Smart one-time retirement dialog - decline once and it stops nagging you for the rest of that game
+- 🔧 Backward-compatible saves - old save files auto-upgrade with new fields, nothing breaks
+
+**MAJOR UI/UX & COMBAT OVERHAUL (v2.1.0):**
 - 💰 **Ship & Gun Costs in Hold Window**: Always know what your next purchase will cost!
   - Dynamic ship pricing displayed (¥10k base + ¥1k per 2 guns over 20)
   - Gun costs shown (¥500 × number of ships)
@@ -493,7 +499,7 @@ In an age of bloated Electron apps and web-based "native" UIs, **Taipan Cursed**
 - **Perl is production-ready** - 3,000+ lines of maintainable, debugged code with test harnesses
 - **Single-file apps have merit** - No build systems, no dependencies hell, just `perl script.pl`
 - **Classic gameplay endures** - Steve Wozniak's favorite game is still addictive 43 years later
-- **Authentic preservation works** - APPLE II BASIC formulas from 1982 run perfectly in 2025
+- **Authentic preservation works** - APPLE II BASIC formulas from 1982 run perfectly in 2026
 
 ### For Grey-Haired Linux Veterans
 
@@ -629,13 +635,16 @@ The South China Sea awaits, Taipan. Will you build an empire or end up as a gall
 
 ## 📣 The Elevator Pitch (For Sharing)
 
-> **Taipan Cursed**: Steve Wozniak's favorite trading game, reborn in 3,000+ lines of production Perl with Curses::UI. Command a merchant fleet in 1860s Asia - trade opium, battle pirates, survive storms, manage debt across seven ports. NOW with authentic APPLE II BASIC storm mechanics, robbery events, and Elder Brother Wu's predatory lending! Features smart auto-launcher, "Press Enter for max" UX, and JSON saves. No Electron. No npm. No Docker. Just `perl script.pl` and pure terminal excellence. GPL-3.0. [github.com/michaellavery-grp/taipan_cursed]
+> **Taipan Cursed** (v2.2.3): Steve Wozniak's favorite trading game, reborn in 3,500+ lines of production Perl with Curses::UI. Command a merchant fleet in 1860s Asia - trade opium, battle pirates, survive storms, manage debt across seven ports. Boots into a **fullscreen animated ASCII pirate ship splash screen**. Faithful APPLE II BASIC storm mechanics, robbery events, Elder Brother Wu's predatory lending, and Li Yuen's Sea Goddess tribute system straight from the original TRS-80 game book. Smart auto-launcher, "Press Enter for max" UX, JSON saves, and a hardened codebase with real regression tests. No Electron. No npm. No Docker. Just `perl script.pl` and pure terminal excellence. Runs in 5 minutes, GPL-3.0, actively maintained in 2026. [github.com/michaellavery-grp/taipan_cursed]
 
 **TL;DR for Hacker News:**
-"Wozniak's favorite 1982 trading game, remade in Perl with ncurses. 3k lines, zero build system, runs over SSH. v1.2.9 adds authentic APPLE II storm mechanics (ship losses!) and robbery system with bodyguard massacres. Proves single-file terminal apps still work in 2025."
+"Wozniak's favorite 1982 trading game, remade in Perl with ncurses. 3.5k lines, zero build system, runs over SSH. v2.2.x adds a 60-frame animated ASCII ship splash screen, authentic APPLE II storm mechanics (ship losses!), a robbery system with bodyguard massacres, and a narrative pirate-tribute system pulled from the original game's TRS-80 book. Proves single-file terminal apps still work in 2026."
 
 **TL;DR for /r/linux:**
-"Terminal trading game in pure Perl. No Electron bloat, no cloud auth, actual respect for your 120x40 terminal. Now with storms that sink ships and thugs that rob you. Smart launcher auto-detects versions. GPL-3.0."
+"Terminal trading game in pure Perl - `git clone`, `./launch_taipan.sh`, playing in under a minute. No Electron bloat, no cloud auth, no telemetry, actual respect for your 120x40 terminal. Storms that sink ships, thugs that rob you, a loan shark who charges 10% monthly compound interest. Smart launcher auto-detects the newest version so you never have to think about it. GPL-3.0, still getting real commits in 2026."
+
+**TL;DR for /r/retrogaming:**
+"A love letter to the 1982 Apple II classic *Taipan!* - the game Steve Wozniak called his favorite - rebuilt from the ground up in Perl/ncurses with the original BASIC combat and economy formulas intact. Trade opium and silk across seven historical ports, dodge storms that can sink your whole fleet, and get shaken down by loan sharks and pirate lords. Now opens with a fullscreen animated ASCII pirate ship. One command to run (`./launch_taipan.sh`), no install wizard, no launcher app - just you, a terminal, and the South China Sea."
 
 ---
 
