@@ -7,6 +7,8 @@ use warnings;
 print "Testing Multi-Port Borrowing Implementation\n";
 print "=" x 60 . "\n\n";
 
+my $failures = 0;
+
 # Initialize test data
 my @ports = ('Hong Kong', 'Shanghai', 'Nagasaki', 'Saigon', 'Manila', 'Batavia', 'Singapore');
 my %port_debt = (
@@ -44,6 +46,7 @@ if ($amount <= $available_credit) {
     print "    Cash: ¥$player{cash}\n";
 } else {
     print "  ✗ FAIL: Should allow borrowing\n";
+    $failures++;
 }
 print "\n";
 
@@ -57,6 +60,7 @@ if ($amount > $available_credit) {
     print "    Port debt limit reached in Hong Kong\n";
 } else {
     print "  ✗ FAIL: Should reject borrowing beyond port limit\n";
+    $failures++;
 }
 print "\n";
 
@@ -78,6 +82,7 @@ if ($amount <= $available_credit) {
     print "    Cash: ¥$player{cash}\n";
 } else {
     print "  ✗ FAIL: Should allow borrowing in new port\n";
+    $failures++;
 }
 print "\n";
 
@@ -120,6 +125,7 @@ if ($interest_rate == 0.20) {
     print "  ✓ PASS: Usury rate correctly applied (debt > 10x bank balance)\n";
 } else {
     print "  ✗ FAIL: Should apply usury rate\n";
+    $failures++;
 }
 print "\n";
 
@@ -137,6 +143,7 @@ if ($port_debt_amount > 0 && $amount <= $port_debt_amount) {
     print "    Total debt: ¥$player{debt}\n";
 } else {
     print "  ✗ FAIL: Should allow payment\n";
+    $failures++;
 }
 print "\n";
 
@@ -153,6 +160,7 @@ if ($amount <= $available_credit) {
     print "    Total debt: ¥$player{debt}\n";
 } else {
     print "  ✗ FAIL: Should allow borrowing up to limit\n";
+    $failures++;
 }
 print "\n";
 
@@ -166,3 +174,12 @@ print "  ✓ Usury rate (20%) applies when total debt > 10x bank balance\n";
 print "  ✓ Payments reduce port-specific debt first\n";
 print "  ✓ Can borrow again after paying down port-specific debt\n";
 print "  ✓ Maximum possible debt: ¥350,000 (7 ports × ¥50,000)\n";
+
+print "\n";
+if ($failures) {
+    print "✗ $failures test(s) FAILED!\n";
+} else {
+    print "✓ All tests passed!\n";
+}
+
+exit($failures ? 1 : 0);

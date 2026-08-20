@@ -12,11 +12,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Recommended: Use the launch script (handles local::lib)
 ./launch_taipan.sh
 
-# Or run the latest version directly
-./Taipan_2020_v2.1.1.pl
+# Or run the latest version directly (check launch_taipan.sh output, or
+# `ls -1 Taipan_2020_v*.pl | sort -V | tail -1`, for the current filename)
+./Taipan_2020_v2.2.3.pl
 
 # Or with perl directly
-perl Taipan_2020_v2.1.1.pl
+perl Taipan_2020_v2.2.3.pl
 ```
 
 **Prerequisites:**
@@ -30,7 +31,7 @@ perl Taipan_2020_v2.1.1.pl
 
 **IMPORTANT: Always follow this workflow when making code changes:**
 
-1. Make code changes to current version (currently v2.1.1)
+1. Make code changes to current version (check `launch_taipan.sh`'s auto-detected filename, or `ls -1 Taipan_2020_v*.pl | sort -V | tail -1`, for the current version - currently v2.2.3)
 2. **Run syntax check:** `perl -c Taipan_2020_vX.X.X.pl`
 3. Fix any syntax errors
 4. Copy to new version: `cp Taipan_2020_vX.X.X.pl Taipan_2020_vX.X.Y.pl`
@@ -51,12 +52,18 @@ The repository includes test scripts for specific features:
 - `test_robberies.pl`: Tests cash robbery, bodyguard massacre, and Elder Wu mechanics
 - `test_li_yuen.pl`: Tests Li Yuen encounter probability and combat mechanics
 
-Run these after making changes to their respective systems.
+Run these after making changes to their respective systems: `perl test_usury.pl`, etc.
+Each script exits non-zero (`$?`) if any check fails, so `perl test_*.pl && echo OK`
+works as a pass/fail gate. Note these scripts re-implement the relevant formulas
+standalone rather than calling into the game file directly (the game has no
+importable module interface - see Single-File Monolith Design below), so they
+validate the *design formulas*, not the live code path. If you change a formula,
+update it in both places.
 
 ## Architecture Overview
 
 ### Single-File Monolith Design
-The entire game is in `Taipan_2020_v2.1.1.pl` (~3,100+ lines). This is intentional - it's a self-contained terminal game without external dependencies beyond Perl modules. Multiple versions exist in the repository for version tracking.
+The entire game is in the latest `Taipan_2020_vX.X.X.pl` (currently v2.2.3, ~3,500+ lines). This is intentional - it's a self-contained terminal game without external dependencies beyond Perl modules. Multiple versions exist in the repository for version tracking.
 
 ### Core Data Structures
 
@@ -337,7 +344,35 @@ perl "$TAIPAN_SCRIPT"
 
 ## Version History
 
-- **v2.2.2**: Li Yuen Sea Goddess Donation System (latest)
+- **v2.2.3**: Code quality pass - DRY refactor + save/load robustness (latest)
+  - Added shared helper functions to eliminate duplicated logic:
+    - `is_valid_positive_amount()`: replaces the identical input-validation regex
+      that was copy-pasted in `deposit()`, `withdraw()`, `buy_ships()`,
+      `buy_guns()`, and `borrow()`
+    - `cargo_used()` / `cargo_free_space()`: replaces the
+      `($player{ships} * $player{hold_capacity}) - (sum of cargo)` formula that
+      was duplicated across 6 call sites (`input_prompt()`, `buy_good()`,
+      `retrieve_good()`, `update_hold()`)
+    - `warehouse_used()` / `warehouse_free_space()`: replaces the warehouse
+      capacity formula duplicated across 3 call sites (`input_prompt()`,
+      `store_good()`, `update_hold()`)
+  - **Fixed `load_game()` crash on bad save file**: file read + JSON decode is
+    now wrapped in `eval` (matching `save_game()`'s existing pattern) so a
+    corrupt or unreadable save shows a `$cui->error()` dialog instead of an
+    uncaught `die` that crashes the whole Curses app and leaves the terminal
+    in a broken state
+  - Test harnesses (`test_*.pl`) now `exit(1)` when any check fails instead of
+    always exiting 0, so they're usable as an actual pass/fail gate. Added
+    real range-based assertions to `test_robberies.pl`,
+    `test_storm_mechanics.pl`, and `test_transaction_maximums.pl`, which
+    previously only printed Monte Carlo stats without checking them against
+    the "(expected ~X%)" comments already in the output. Widened
+    `test_li_yuen.pl`'s tolerance bands, which were too tight for its actual
+    sample size (~111 pirate encounters out of 1000 voyages, not 1000) and
+    were failing intermittently even when the underlying probability logic
+    was correct.
+  - No gameplay/balance changes - behavior is identical to v2.2.2
+- **v2.2.2**: Li Yuen Sea Goddess Donation System
   - **Sea Goddess Donation**: Implemented complete tribute system from TRS-80 original
   - Representative approach in Hong Kong when `cash > ¥100` and `TR = 0`
   - Donation amount: up to 50% of cash (DN variable from game book)
@@ -425,4 +460,4 @@ perl "$TAIPAN_SCRIPT"
 - **v1.0.0**: First full release with all core features
 - **v0.1.1**: Early alpha version
 
-**Current Active Version:** v2.1.1 (see `launch_taipan.sh` for currently configured version)
+**Current Active Version:** v2.2.3 (auto-detected by `launch_taipan.sh`; run `ls -1 Taipan_2020_v*.pl | sort -V | tail -1` to confirm the current latest)

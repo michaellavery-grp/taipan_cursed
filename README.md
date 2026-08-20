@@ -4,11 +4,11 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Perl](https://img.shields.io/badge/Perl-5-purple.svg)](https://www.perl.org/)
 [![Curses::UI](https://img.shields.io/badge/Curses%3A%3AUI-Terminal-green.svg)](https://metacpan.org/pod/Curses::UI)
-[![Version](https://img.shields.io/badge/version-2.1.1-brightgreen.svg)](https://github.com/michaellavery-grp/taipan_cursed)
+[![Version](https://img.shields.io/badge/version-2.2.3-brightgreen.svg)](https://github.com/michaellavery-grp/taipan_cursed)
 
 > *"Taipan Cursed, sailing as the Dutch East India Company, preserves its legacy with JSON ledgers and zen koans, crafted with Grok's celestial guidance from xAI."*
 
-**Latest Release: v2.1.1** - Quality of life updates! Real-time seaworthiness display during combat/storms, one-time retirement dialog with "sail on" option!
+**Latest Release: v2.2.3** - Code quality pass: deduplicated repeated validation/capacity logic into shared helper functions, fixed a crash-on-corrupt-save-file bug, and made the test harnesses actually fail (non-zero exit) when a check fails. No gameplay changes. See [CLAUDE.md](CLAUDE.md#version-history) for the full version history, including the animated splash screen, portable paths, and Li Yuen tribute system added in v2.2.0-v2.2.2.
 
 ## 🌊 What is Taipan Cursed?
 

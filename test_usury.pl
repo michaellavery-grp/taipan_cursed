@@ -7,6 +7,8 @@ use warnings;
 print "Testing Usury Limit Implementation\n";
 print "=" x 50 . "\n\n";
 
+my $failures = 0;
+
 # Test 1: Maximum debt cap
 print "Test 1: Maximum Debt Cap (¥50,000)\n";
 my $max_debt = 50000;
@@ -19,6 +21,7 @@ if ($borrow_amount > $available_credit) {
     print "    Available credit: ¥$available_credit\n";
 } else {
     print "  ✗ FAIL: Should not allow borrowing beyond limit\n";
+    $failures++;
 }
 print "\n";
 
@@ -36,6 +39,7 @@ if ($debt <= ($bank_balance * 10)) {
     print "    Rate: 10%\n";
 } else {
     print "  ✗ FAIL: Should use normal rate\n";
+    $failures++;
 }
 print "\n";
 
@@ -54,6 +58,7 @@ if ($debt > ($bank_balance * 10)) {
     print "    Rate: 20% (USURY!)\n";
 } else {
     print "  ✗ FAIL: Should trigger usury rate\n";
+    $failures++;
 }
 print "\n";
 
@@ -78,8 +83,15 @@ for my $month (1..12) {
     }
 }
 
-print "\n✓ All tests completed!\n";
+print "\n";
+if ($failures) {
+    print "✗ $failures test(s) FAILED!\n";
+} else {
+    print "✓ All tests passed!\n";
+}
 print "\nKey findings:\n";
 print "  - Max debt enforced at borrowing time: ¥50,000\n";
 print "  - Interest can push debt beyond cap (needs additional safeguard?)\n";
 print "  - Usury rate (20%) applies when debt > 10x bank balance\n";
+
+exit($failures ? 1 : 0);

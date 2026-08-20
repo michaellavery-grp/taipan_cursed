@@ -182,25 +182,30 @@ print "=" x 80 . "\n";
 
 my @validations;
 
-# Validation 1: Li Yuen rate without tribute (should be ~25%, allow 20-30%)
+# Validation 1: Li Yuen rate without tribute (should be ~25%)
+# Note: this is a fraction of pirate encounters (~1000/9 =~ 111 samples, not 1000),
+# so the tolerance band has to be wide enough to absorb realistic sampling noise
+# (binomial std dev at n=111, p=0.25 is ~4.1 percentage points) or the check is
+# flaky independent of whether the underlying probability is correctly implemented.
 if ($stats_no_tribute{total_pirate_encounters} > 0) {
     my $li_yuen_pct = ($stats_no_tribute{li_yuen_encounters} / $stats_no_tribute{total_pirate_encounters}) * 100;
-    my $pass = ($li_yuen_pct >= 20 && $li_yuen_pct <= 30);
+    my $pass = ($li_yuen_pct >= 12 && $li_yuen_pct <= 38);
     push @validations, {
         test => "Li Yuen encounter rate (no tribute)",
-        expected => "20-30%",
+        expected => "12-38%",
         actual => sprintf("%.1f%%", $li_yuen_pct),
         pass => $pass,
     };
 }
 
-# Validation 2: Li Yuen rate with tribute (should be ~8.3%, allow 5-12%)
+# Validation 2: Li Yuen rate with tribute (should be ~8.3%)
+# Same sampling-noise reasoning as above (std dev at n=111, p=0.083 is ~2.6 points).
 if ($stats_with_tribute{total_pirate_encounters} > 0) {
     my $li_yuen_pct = ($stats_with_tribute{li_yuen_encounters} / $stats_with_tribute{total_pirate_encounters}) * 100;
-    my $pass = ($li_yuen_pct >= 5 && $li_yuen_pct <= 12);
+    my $pass = ($li_yuen_pct >= 1 && $li_yuen_pct <= 18);
     push @validations, {
         test => "Li Yuen encounter rate (with tribute)",
-        expected => "5-12%",
+        expected => "1-18%",
         actual => sprintf("%.1f%%", $li_yuen_pct),
         pass => $pass,
     };
@@ -263,6 +268,7 @@ foreach my $val (@validations) {
 print "\n";
 my $total_tests = scalar(@validations);
 my $passed_tests = grep { $_->{pass} } @validations;
+my $failed_tests = $total_tests - $passed_tests;
 print sprintf("Tests Passed: %d/%d (%.1f%%)\n", $passed_tests, $total_tests,
     ($passed_tests / $total_tests) * 100);
 
@@ -291,3 +297,5 @@ sub sum {
 }
 
 print "\nTest complete!\n";
+
+exit($failed_tests ? 1 : 0);

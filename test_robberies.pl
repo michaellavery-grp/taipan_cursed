@@ -8,6 +8,26 @@ use warnings;
 print "Testing Robbery & Elder Brother Wu Mechanics\n";
 print "=" x 80 . "\n\n";
 
+my $failures = 0;
+sub check_range {
+    my ($label, $pct, $lo, $hi) = @_;
+    if ($pct >= $lo && $pct <= $hi) {
+        printf "  ✓ PASS: %s = %.1f%% (expected %d%%-%d%%)\n", $label, $pct, $lo, $hi;
+    } else {
+        printf "  ✗ FAIL: %s = %.1f%% (expected %d%%-%d%%)\n", $label, $pct, $lo, $hi;
+        $failures++;
+    }
+}
+sub check_range_int {
+    my ($label, $val, $lo, $hi) = @_;
+    if ($val >= $lo && $val <= $hi) {
+        print "  ✓ PASS: $label = $val (expected $lo-$hi)\n";
+    } else {
+        print "  ✗ FAIL: $label = $val (expected $lo-$hi)\n";
+        $failures++;
+    }
+}
+
 # Test 1: Cash Robbery (Line 2501)
 print "Test 1: Cash Robbery (CA > 25,000 with 1-in-20 chance)\n";
 print "-" x 80 . "\n";
@@ -42,6 +62,7 @@ printf "Average amount stolen:   ¥%d (max possible: ¥%d)\n",
     $avg_stolen, int(30000 / 1.4);
 printf "Total stolen:            ¥%d\n", $total_stolen;
 
+check_range("Cash robbery trigger rate", $trigger_rate, 3, 8);
 print "\n";
 
 # Test 2: Bodyguard Massacre (Line 1460)
@@ -84,6 +105,7 @@ printf "  3 bodyguards:          %4d (%.1f%%)\n",
 printf "Average cash lost:       ¥%d\n", $avg_cash_lost;
 printf "Total cash lost:         ¥%d\n", $total_cash_lost;
 
+check_range("Bodyguard massacre trigger rate", $massacre_rate, 15, 25);
 print "\n";
 
 # Test 3: Elder Brother Wu Escort (Line 1220)
@@ -110,6 +132,8 @@ my $avg_braves = int($total_braves / scalar @escort_sizes);
 printf "Escort size range:       %d - %d braves\n", $min_braves, $max_braves;
 printf "Average escort size:     %d braves\n", $avg_braves;
 
+check_range_int("Escort min braves", $min_braves, 50, 149);
+check_range_int("Escort max braves", $max_braves, 50, 149);
 print "\n";
 
 # Test 4: Elder Brother Wu Emergency Loans (Line 1330)
@@ -195,5 +219,11 @@ print "   Effect:  Increases each time (BL% counter)\n";
 print "   Example: Loan #1: ¥1000 → Pay ¥3000 (200% interest)\n";
 print "            Loan #2: ¥1500 → Pay ¥5500 (267% interest)\n";
 print "\n";
-print "✓ All robbery mechanics tested!\n";
+if ($failures) {
+    print "✗ $failures validation(s) FAILED!\n";
+} else {
+    print "✓ All robbery mechanics tested and validated!\n";
+}
 print "  The streets of Hong Kong are DANGEROUS, Taipan.\n";
+
+exit($failures ? 1 : 0);

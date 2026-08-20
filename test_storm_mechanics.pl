@@ -75,6 +75,25 @@ printf "    - Partial loss:        %4d\n", $partial_loss;
 printf "  Blown off course:        %4d / %4d  (%.1f%%, expected ~33%% of storms)\n",
     $blown_off_course, $storms || 1, ($blown_off_course/($storms||1)*100);
 
+# VALIDATION: check observed Monte Carlo rates land within a tolerant band
+# around the designed probabilities (1000 voyages keeps sampling noise small).
+my $failures = 0;
+sub check_range {
+    my ($label, $pct, $lo, $hi) = @_;
+    if ($pct >= $lo && $pct <= $hi) {
+        printf "  ✓ PASS: %s = %.1f%% (expected %d%%-%d%%)\n", $label, $pct, $lo, $hi;
+    } else {
+        printf "  ✗ FAIL: %s = %.1f%% (expected %d%%-%d%%)\n", $label, $pct, $lo, $hi;
+        $failures++;
+    }
+}
+
+print "\nValidation:\n";
+print "-" x 70 . "\n";
+check_range("Storm rate", ($storms/$voyages*100), 6, 14);
+check_range("Sinking danger rate (of storms)", ($sinking_danger/($storms||1)*100), 0, 8);
+check_range("Blown off course rate (of storms)", ($blown_off_course/($storms||1)*100), 22, 44);
+
 print "\n";
 print "=" x 70 . "\n";
 print "Storm Mechanics Summary\n";
@@ -112,5 +131,12 @@ foreach my $scenario (@damage_scenarios) {
         $scenario->{desc}, $dm, $sc, $factor, $percent, $loss_pct;
 }
 
-print "\n✓ Storm mechanics implemented!\n";
+print "\n";
+if ($failures) {
+    print "✗ $failures validation(s) FAILED!\n";
+} else {
+    print "✓ Storm mechanics implemented and validated!\n";
+}
 print "  Mother Nature is indeed a cruel mistress.\n";
+
+exit($failures ? 1 : 0);
