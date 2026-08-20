@@ -285,9 +285,6 @@ cpan local::lib
 git clone https://github.com/michaellavery-grp/taipan_cursed.git
 cd taipan_cursed
 
-# Switch to the latest release branch
-git checkout Taipan_v1.0_alpha
-
 # Make launcher executable
 chmod +x launch_taipan.sh
 
@@ -303,21 +300,22 @@ chmod +x launch_taipan.sh
 ### Manual Launch (Advanced Users)
 
 ```bash
-# Make the latest version executable
-chmod +x Taipan_2020_v1.2.9.pl
+# Find the latest version
+LATEST=$(ls -1 Taipan_2020_v*.pl | sort -V | tail -1)
 
-# Run directly
-./Taipan_2020_v1.2.9.pl
+# Make it executable and run directly
+chmod +x "$LATEST"
+./"$LATEST"
 
 # Or with perl
-perl Taipan_2020_v1.2.9.pl
+perl "$LATEST"
 ```
 
 ### Verify Installation
 
 ```bash
 # Check syntax (recommended before first run)
-perl -c Taipan_2020_v1.2.9.pl
+perl -c "$(ls -1 Taipan_2020_v*.pl | sort -V | tail -1)"
 
 # List available versions
 ls -1 Taipan_2020_v*.pl | sort -V
@@ -368,12 +366,10 @@ ls ascii_taipan_map*.txt
 
 ```
 taipan_cursed/
-├── launch_taipan.sh           # Smart launcher (auto-detects latest version)
-├── Taipan_2020_v1.2.9.pl      # Latest stable release (3,000+ lines) NEW!
-├── Taipan_2020_v1.2.8.pl      # Storm mechanics
-├── Taipan_2020_v1.2.7.pl      # UI polish
-├── Taipan_2020_v1.2.6.pl      # Critical bug fix
-├── Taipan_2020_v1.2.x.pl      # Version history (full progression)
+├── launch_taipan.sh           # Smart launcher (auto-detects and runs the latest version)
+├── Taipan_2020_vX.X.X.pl      # Each release is its own file; launch_taipan.sh always
+│                               # picks the highest version number (see CLAUDE.md for
+│                               # the full version history)
 ├── CLAUDE.md                  # Developer documentation for AI-assisted dev
 ├── README.md                  # This file
 ├── ascii_taipan_map1.txt      # Home port map (Hong Kong)
