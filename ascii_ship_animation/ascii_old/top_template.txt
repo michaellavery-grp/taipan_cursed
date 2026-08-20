@@ -1,0 +1,13 @@
+         _____  _    ___ ____   _    _   _               ===============
+        |_   _|/ \  |_ _|  _ \ / \  | \ | |              Created by:
+          | | / _ \  | || |_) / _ \ |  \| |                 Art Canfil
+          | |/ ___ \ | ||  __/ ___ \| |\  |
+          |_/_/   \_\___|_| /_/   \_\_| \_|              ===============
+                                                         Perl Version by:
+   A game based on the China trade of the 1800's          Michael Lavery
+
+
+8,39s/^.\{10}//
+
+
+Xxx

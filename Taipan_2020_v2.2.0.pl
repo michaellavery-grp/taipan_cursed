@@ -16,12 +16,15 @@ use POSIX qw(strftime);
 use File::Spec;
 use File::Basename;
 
+# Get the directory where this script is located (base directory for all resources)
+our $SCRIPT_DIR = dirname(__FILE__);
+
 # Load animated ship splash screen module
-use lib dirname(__FILE__) . '/ascii_ship_animation';
+use lib File::Spec->catdir($SCRIPT_DIR, 'ascii_ship_animation');
 require 'ship_animation.pl';
 
-# Debug logging to file - relative path for portability
-our $DEBUG_LOG = 'taipan_debug.log';
+# Debug logging to file - in script directory
+our $DEBUG_LOG = File::Spec->catfile($SCRIPT_DIR, 'taipan_debug.log');
 open(my $debug_fh, '>', $DEBUG_LOG) or die "Cannot open debug log: $!";
 sub debug_log {
     my $msg = shift;
@@ -31,6 +34,7 @@ sub debug_log {
 
 # Log that we started
 debug_log("=== TAIPAN STARTED ===");
+debug_log("Script directory: $SCRIPT_DIR");
 
 # Global variables
 our $focus_menu = "ship_menu";
@@ -219,15 +223,19 @@ our %port_debt = (
     'Singapore'  => 0,
 );
 
-# Define the ascii map text
+# Define the ascii map text files (relative to script directory)
 our @filenames = ('ascii_taipan_map1.txt', 'ascii_taipan_map2.txt', 'ascii_taipan_map3.txt', 'ascii_taipan_map4.txt', 'ascii_taipan_map5.txt', 'ascii_taipan_map6.txt', 'ascii_taipan_map7.txt');
 # create blank array to hold map text string values
 our @map_text = ();
 # Open files one at a time
 
 foreach my $file (@filenames) {
-    if (-e $file) {
-        open my $fh, '<', $file or die "Cannot open '$file': $!";
+    # Build full path relative to script directory
+    my $full_path = File::Spec->catfile($SCRIPT_DIR, $file);
+    debug_log("Loading map file: $full_path");
+
+    if (-e $full_path) {
+        open my $fh, '<', $full_path or die "Cannot open '$full_path': $!";
         {
             local $/; # Temporarily undefine the input record separator
             # Read all lines from the current file into a temporary array
@@ -236,10 +244,13 @@ foreach my $file (@filenames) {
             # Remove trailing newlines from each line
             chomp @current_file_lines;
             # Append the lines from the current file to the main map_text array
-            push @map_text, @current_file_lines; 
+            push @map_text, @current_file_lines;
 
-            close $fh or die "Cannot close '$file': $!";
+            close $fh or die "Cannot close '$full_path': $!";
         }
+        debug_log("Loaded map file: $file");
+    } else {
+        debug_log("WARNING: Map file not found: $full_path");
     }
 }
 
@@ -491,8 +502,12 @@ sub get_hot_deals_text {
 sub save_game {
     my $firm_name = $player{firm_name};
     my $date_str = sprintf("%04d-%02d-%02d", $player{date}{year}, $player{date}{month}, $player{date}{day});
-    my $filename = File::Spec->catfile('saves', "${firm_name}_${date_str}.dat");
-    mkdir 'saves' unless -d 'saves';
+
+    # Create saves directory in script directory
+    my $saves_dir = File::Spec->catdir($SCRIPT_DIR, 'saves');
+    mkdir $saves_dir unless -d $saves_dir;
+
+    my $filename = File::Spec->catfile($saves_dir, "${firm_name}_${date_str}.dat");
 
     # Check for overwrite
     if (-e $filename) {
@@ -526,11 +541,12 @@ sub save_game {
 
 # Load Game Function
 sub load_game {
-    # Ensure saves directory exists
-    mkdir 'saves' unless -d 'saves';
+    # Ensure saves directory exists in script directory
+    my $saves_dir = File::Spec->catdir($SCRIPT_DIR, 'saves');
+    mkdir $saves_dir unless -d $saves_dir;
 
     # Open file browser starting in the saves directory
-    my $filename = $cui->filebrowser(-path => 'saves');
+    my $filename = $cui->filebrowser(-path => $saves_dir);
     if (defined $filename && $filename ne '') {
         open my $fh, '<:utf8', $filename or die "Cannot open $filename: $!";
         local $/;
