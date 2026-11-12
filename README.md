@@ -1,6 +1,8 @@
 # 🚢 Taipan Cursed ⚓
 ### *Sailing the South China Seas with the Dutch East India Company*
 
+> **Development has moved on.** New work continues in **[Kapitein](https://github.com/michaellavery-grp/kapitein)**, a new VOC trading game set in 1660 with its own map, goods and rules. Taipan Cursed stays here as it was.
+
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Perl](https://img.shields.io/badge/Perl-5-purple.svg)](https://www.perl.org/)
 [![Curses::UI](https://img.shields.io/badge/Curses%3A%3AUI-Terminal-green.svg)](https://metacpan.org/pod/Curses::UI)
